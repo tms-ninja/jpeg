@@ -1,0 +1,1 @@
+add_subdirectory(jpeg_cpp_test)
