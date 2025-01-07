@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include "jpeg_cpp/bit_string.h"
 
+using namespace JPEG;
 
 TEST_CASE( "Bit_String::equality of Bit_Strings", "[Bit_String]" ) {
     Bit_String bs1{ 10 };
