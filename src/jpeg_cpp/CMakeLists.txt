@@ -10,5 +10,5 @@ target_include_directories(jpeg_cpp PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DI
 target_compile_options(jpeg_cpp PRIVATE -Wall -Wextra)
 
 # Ensure compiler supports at least C++17
-#target_compile_features(jpeg_cpp PUBLIC cxx_std_11)
+target_compile_features(jpeg_cpp PUBLIC cxx_std_17)
 
