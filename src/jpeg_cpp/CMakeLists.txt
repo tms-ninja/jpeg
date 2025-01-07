@@ -1,6 +1,11 @@
 
 # Add the library
-add_library(jpeg_cpp SHARED bit_string.cpp "${jpeg_SOURCE_DIR}/include/jpeg_cpp/bit_string.h")
+add_library(jpeg_cpp SHARED 
+            "${jpeg_SOURCE_DIR}/include/jpeg_cpp/array.h"
+            array.cpp
+            "${jpeg_SOURCE_DIR}/include/jpeg_cpp/bit_string.h"
+            bit_string.cpp
+)
 
 # Add headers library users need to use this library
 target_include_directories(jpeg_cpp PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
