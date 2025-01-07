@@ -15,7 +15,7 @@ static_assert(CHAR_BIT==bits_per_char, "char type has more than 8 bits!");
 constexpr unsigned int MSB_selector{ 0b10'000'000u };
 
 
-/// @brief Proxy class to allow subscripting bits
+/// @brief Proxy class to allow subscripting bits in Bit_String
 class Bit_Ref
 {
 private:
@@ -24,32 +24,16 @@ private:
     const size_t bit_selector;
 
 public:
-    Bit_Ref(unsigned char& c, size_t offset) : char_ref{ c }, bit_offset{ offset }, bit_selector{ MSB_selector >> offset } {}
-
-    Bit_Ref& operator=(bool bit)
-    {
-        if (bit)
-        {
-            char_ref |= bit_selector;
-        }
-        else
-        {
-            char_ref &= ~bit_selector;
-        }
-
-        return *this;
-    }
-
-    operator bool()
-    {
-        return (char_ref & bit_selector);// >> (bits_per_char-bit_offset-1);
-    }
+    Bit_Ref(unsigned char& c, size_t offset);
+    
+    Bit_Ref& operator=(bool bit);
+    operator bool();
 };
 
-// Note first bit in an 8 bit byte is the most significant bit
-// This should be the correct order for the JPEG standard
 
 /// @brief Represents a String of Bits
+/// Note first bit in an 8 bit byte is the most significant bit
+/// This should be the correct order for the JPEG standard
 class Bit_String {
 private:
     std::vector<unsigned char> buffer;

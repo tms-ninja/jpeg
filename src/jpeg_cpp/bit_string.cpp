@@ -1,5 +1,30 @@
 #include "jpeg_cpp/bit_string.h"
 
+Bit_Ref::Bit_Ref(unsigned char& c, size_t offset)
+ : char_ref{ c }, bit_offset{ offset }, bit_selector{ MSB_selector >> offset } 
+{
+
+}
+
+Bit_Ref& Bit_Ref::operator=(bool bit)
+{
+    if (bit)
+    {
+        char_ref |= bit_selector;
+    }
+    else
+    {
+        char_ref &= ~bit_selector;
+    }
+
+    return *this;
+}
+
+Bit_Ref::operator bool()
+{
+    return (char_ref & bit_selector);
+}
+
 Bit_String::Bit_String() 
  : buffer_size{ 0 }
 {
