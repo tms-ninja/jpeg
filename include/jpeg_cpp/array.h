@@ -2,6 +2,7 @@
 #define ARRAY_H
 
 #include <array>
+#include <cassert>
 #include <iostream>
 #include <vector>
 
@@ -48,8 +49,19 @@ namespace JPEG {
             buffer.resize(size);
         }
 
-        T& operator[](size_t ind) { return buffer[ind] ;}
-        const T& operator[](size_t ind) const { return buffer[ind] ;}
+        T& operator[](size_t ind) 
+        { 
+            assert(("Index out of bounds", ind<size()));
+            
+            return buffer[ind];
+        }
+
+        const T& operator[](size_t ind) const
+        { 
+            assert(("Index out of bounds", ind<size()));
+
+            return buffer[ind];
+        }
 
         friend std::ostream& operator<< (std::ostream& out, const Array<T>& arr)
         {
@@ -90,9 +102,11 @@ namespace JPEG {
         /// @param ls Initializer lists containing the values
         Array_2d(const std::initializer_list<std::initializer_list<T>>& ls)
         {
-            // For now, assume neither number of rows or columns is zero
+            
             arr_shape[0] = ls.size();
+            assert(("Dimension 0 of Array_2d cannot be zero", arr_shape[0]!=0));
             arr_shape[1] = (*ls.begin()).size();
+            assert(("Dimension 1 of Array_2d cannot be zero", arr_shape[1]!=0));
 
             buffer.resize(arr_shape[0]*arr_shape[1]);
 
@@ -101,6 +115,7 @@ namespace JPEG {
             for (auto& row: ls)
             {
                 // Verify the row size
+                assert(("Rows of Array_2d must have the same size", row.size()==arr_shape[1]));
 
                 // remember to reset j
                 j = 0;
@@ -130,12 +145,22 @@ namespace JPEG {
         /// @brief Access elements as a 1d array
         /// @param ind Index of element as a 1d array
         /// @return Element at index ind
-        T& operator[](size_t ind) { return buffer[ind] ;}
+        T& operator[](size_t ind) 
+        { 
+            assert(("Index out of bounds", ind<size()));
+            
+            return buffer[ind];
+        }
 
         /// @brief Access elements as a 1d array
         /// @param ind Index of element as a 1d array
         /// @return Element at index ind
-        const T& operator[](size_t ind) const { return buffer[ind] ;}
+        const T& operator[](size_t ind) const 
+        { 
+            assert(("Index out of bounds", ind<size()));
+
+            return buffer[ind];
+        }
 
         /// @brief Gets the element at the given row and column
         /// @param row The row of the desired element
@@ -144,6 +169,7 @@ namespace JPEG {
         T& at(size_t row, size_t column)
         {
             size_t ind{ row*arr_shape[1] + column };
+            assert(("Index out of bounds", ind<size()));
 
             return buffer[ind];
         }
@@ -155,6 +181,7 @@ namespace JPEG {
         const T& at(size_t row, size_t column) const
         {
             size_t ind{ row*arr_shape[1] + column };
+            assert(("Index out of bounds", ind<size()));
 
             return buffer[ind];
         }
@@ -241,10 +268,13 @@ namespace JPEG {
 
                 for (auto& row: data_unit)
                 {
+                    assert(("Data units of DU_Array must have 8 rows", row.size()==DU_height));
                     j = 0;
 
                     for (auto& elem: row)
                     {
+                        assert(("Data unit rows of DU_Array must have 8 columns", row.size()==DU_width));
+
                         at(du_ind, i, j) = elem;
                         j++;
                     }
@@ -270,12 +300,22 @@ namespace JPEG {
         /// @brief Access elements as a 1d array
         /// @param ind Index of element as a 1d array
         /// @return Element at index ind
-        T& operator[](size_t ind) { return buffer[ind]; }
+        T& operator[](size_t ind) 
+        { 
+            assert(("Index out of bounds", ind<size()));
+            
+            return buffer[ind]; 
+        }
 
         /// @brief Access elements as a 1d array
         /// @param ind Index of element as a 1d array
         /// @return Element at index ind
-        const T& operator[](size_t ind) const { return buffer[ind]; }
+        const T& operator[](size_t ind) const 
+        { 
+            assert(("Index out of bounds", ind<size()));
+            
+            return buffer[ind]; 
+        }
 
         /// @brief Gets the element at the given row/column of the selected data unit
         /// @param DU_ind Index of the data unit
@@ -287,6 +327,7 @@ namespace JPEG {
             size_t buffer_ind;
 
             buffer_ind = DU_ind*DU_height*DU_width + row*DU_width + column;
+            assert(("Index out of bounds", buffer_ind<size()));
 
             return buffer[buffer_ind];
         }
@@ -301,6 +342,7 @@ namespace JPEG {
             size_t buffer_ind;
 
             buffer_ind = DU_ind*DU_height*DU_width + row*DU_width + column;
+            assert(("Index out of bounds", buffer_ind<size()));
 
             return buffer[buffer_ind];
         }
