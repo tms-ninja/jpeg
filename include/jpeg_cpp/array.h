@@ -86,6 +86,8 @@ namespace JPEG {
 
         }
 
+        /// @brief Initializes Array using given values
+        /// @param ls Initializer lists containing the values
         Array_2d(const std::initializer_list<std::initializer_list<T>>& ls)
         {
             // For now, assume neither number of rows or columns is zero
@@ -223,6 +225,8 @@ namespace JPEG {
 
         }
 
+        /// @brief Initializes DU_Array with the given values
+        /// @param ls Initializer lists containing the values
         DU_Array(std::initializer_list<std::initializer_list<std::initializer_list<T>>> ls)
         {
             arr_shape = std::array<size_t, 3>{ls.size(), DU_height, DU_width};
