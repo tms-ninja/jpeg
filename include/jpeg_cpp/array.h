@@ -185,6 +185,164 @@ namespace JPEG {
             return out;
         }
     };
+
+    /// @brief Represents an array of data units
+    /// @tparam T Element type
+    template<typename T>
+    class DU_Array
+    {
+    private:
+        constexpr static size_t DU_width{ 8 };
+        constexpr static size_t DU_height{ 8 };
+        Array<T> buffer;
+        std::array<size_t, 3> arr_shape;
+    public:
+
+        /// @brief Constructs a DU_Array with the given number of data units
+        /// @param N The number of data units in the DU_Array
+        DU_Array(size_t N)
+         : buffer(N*DU_width*DU_height), arr_shape{ N, DU_height, DU_width }
+        {
+
+        }
+
+        DU_Array(std::initializer_list<std::initializer_list<std::initializer_list<T>>> ls)
+        {
+            arr_shape = std::array<size_t, 3>{ls.size(), DU_height, DU_width};
+            buffer.resize(ls.size()*DU_height*DU_width);
+
+            size_t du_ind{ 0 }, i{ 0 }, j{ 0 };
+
+            for (auto& data_unit: ls)
+            {
+                // Don't forget to reset i and j
+                i = 0;
+
+                for (auto& row: data_unit)
+                {
+                    j = 0;
+
+                    for (auto& elem: row)
+                    {
+                        at(du_ind, i, j) = elem;
+                        j++;
+                    }
+
+                    i++;
+                }
+                du_ind++;
+            }
+        }
+
+        /// @brief Shape of the array
+        /// @return Shape of the array as rows/columns
+        std::array<size_t, 3> shape() const { return arr_shape; }
+
+        /// @brief Number of elements in the DU_Array
+        /// @return Number of elements in the DU_Array
+        size_t size() const { return buffer.size(); }
+
+        /// @brief Returns a pointer to the underlying buffer
+        /// @return A pointer to the underlying buffer
+        const T* data() const { return buffer.data(); }
+
+        /// @brief Access elements as a 1d array
+        /// @param ind Index of element as a 1d array
+        /// @return Element at index ind
+        T& operator[](size_t ind) { return buffer[ind]; }
+
+        /// @brief Access elements as a 1d array
+        /// @param ind Index of element as a 1d array
+        /// @return Element at index ind
+        const T& operator[](size_t ind) const { return buffer[ind]; }
+
+        /// @brief Gets the element at the given row/column of the selected data unit
+        /// @param DU_ind Index of the data unit
+        /// @param row 
+        /// @param column 
+        /// @return Element at given row/column of the selected data unit
+        T& at(size_t DU_ind, size_t row, size_t column)
+        {
+            size_t buffer_ind;
+
+            buffer_ind = DU_ind*DU_height*DU_width + row*DU_width + column;
+
+            return buffer[buffer_ind];
+        }
+
+        /// @brief Gets the element at the given row/column of the selected data unit
+        /// @param DU_ind Index of the data unit
+        /// @param row 
+        /// @param column 
+        /// @return Element at given row/column of the selected data unit
+        const T& at(size_t DU_ind, size_t row, size_t column) const
+        {
+            size_t buffer_ind;
+
+            buffer_ind = DU_ind*DU_height*DU_width + row*DU_width + column;
+
+            return buffer[buffer_ind];
+        }
+
+        /// @brief Gets the element at the given row/column of the selected data unit
+        /// @param DU_ind Index of the data unit
+        /// @param row 
+        /// @param column 
+        /// @return Element at given row/column of the selected data unit
+        T& operator()(size_t DU_ind, size_t row, size_t column)
+        {
+            at(DU_ind, row, column);
+        }
+
+        /// @brief Gets the element at the given row/column of the selected data unit
+        /// @param DU_ind Index of the data unit
+        /// @param row 
+        /// @param column 
+        /// @return Element at given row/column of the selected data unit
+        const T& operator()(size_t DU_ind, size_t row, size_t column) const
+        {
+            at(DU_ind, row, column);
+        }
+
+        friend std::ostream& operator<<(std::ostream& out, const DU_Array<T>& du_arr)
+        {
+            // opening bracket for the array
+            out << "[\n";
+
+            for (size_t du_ind = 0; du_ind < du_arr.shape()[0]; du_ind++)
+            {
+                // Opening bracket for this data unit
+                out << "  [\n";
+
+                for (size_t i=0; i<du_arr.arr_shape[1]; i++)
+                {
+                    // Indent with two spaces
+                    out << "    [ ";
+
+                    for (size_t j=0; j<du_arr.arr_shape[2]-1; j++)
+                    {
+                        out << du_arr.at(du_ind, i, j) << ", ";
+                    }
+                    // Don't forget the last element in the row and the closing bracket
+                    out << du_arr.at(du_ind, i, du_arr.arr_shape[1]-1) << " ],\n";
+                }
+
+                // closing bracket for this data unit
+                if (du_ind<du_arr.shape()[0]-1)
+                {
+                    out << "  ],\n";
+                }
+                else
+                {
+                    out << "  ]\n";
+                }
+            }
+
+            out << ']';
+            
+            return out;
+        }
+    };
 }
 
 #endif
