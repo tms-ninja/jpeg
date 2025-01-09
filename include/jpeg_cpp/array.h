@@ -53,10 +53,15 @@ namespace JPEG {
 
         friend std::ostream& operator<< (std::ostream& out, const Array<T>& arr)
         {
-            for (T& elem: arr.buffer)
+            out << "[ ";
+
+            for (size_t ind=0; ind<arr.size()-1; ++ind)
             {
-                out << elem << ' ';
+                out << arr.buffer[ind] << ", ";
             }
+
+            // Don't forget the last element
+            out << arr.buffer[arr.size()-1] << " ]";
 
             return out;
         }

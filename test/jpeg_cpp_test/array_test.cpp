@@ -77,6 +77,24 @@ TEST_CASE( "Array::resizing of Arrays", "[Array]" ) {
     }
 }
 
+TEST_CASE( "Array::output to iostream", "[Array]" ) {
+    Array<int> arr_input = {0, 1, 2, 3, 4, 5};
+
+    // Now create a string representation and check whether it is what we expect
+    std::string str_expected{
+        "[ 0, 1, 2, 3, 4, 5 ]"
+    };
+
+    // Compute the actual string and see if their the same
+    std::stringstream str_stream;
+
+    str_stream << arr_input;
+
+    std::string str_actual{ str_stream.str() };
+    
+    REQUIRE( str_actual == str_expected );
+}
+
 TEST_CASE( "Array_2d::construction of Array_2ds", "[Array_2d]" ) {
 
     SECTION( "constructing using number of rows and columns" ) {
