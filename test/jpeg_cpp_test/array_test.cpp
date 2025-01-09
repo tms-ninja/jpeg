@@ -128,6 +128,30 @@ TEST_CASE( "Array_2d::2d subscripting of Array_2ds", "[Array_2d]" ) {
     }
 }
 
+TEST_CASE( "Array_2d::output to iostream", "[Array_2d]" ) {
+    Array_2d<int> arr_input = {
+            {0, 1, 2},
+            {3, 4, 5}
+    };
+
+    // Now create a string representation and check whether it is what we expect
+    std::string str_expected{
+        "[\n"
+        "  [ 0, 1, 2 ],\n"
+        "  [ 3, 4, 5 ]\n"
+        "]"
+    };
+
+    // Compute the actual string and see if their the same
+    std::stringstream str_stream;
+
+    str_stream << arr_input;
+
+    std::string str_actual{ str_stream.str() };
+    
+    REQUIRE( str_actual == str_expected );
+}
+
 TEST_CASE( "DU_Array::construction of DU_Array", "[DU_Array]" ) {
 
     SECTION( "constructing using shape" ) {

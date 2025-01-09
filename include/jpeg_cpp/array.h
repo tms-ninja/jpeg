@@ -172,15 +172,27 @@ namespace JPEG {
 
         friend std::ostream& operator<<(std::ostream& out, const Array_2d<T>& arr)
         {
+            out << "[\n";
+
             for (size_t i=0; i<arr.arr_shape[0]; i++)
             {
+                out << "  [ ";
                 for (size_t j=0; j<arr.arr_shape[1]-1; j++)
                 {
-                    out << at(i, j) << ' ';
+                    out << arr.at(i, j) << ", ";
                 }
                 // Don't forget the last element in the row
-                out << at(i, arr.arr_shape[1]-1) << '\n';
+                if (i<arr.arr_shape[0]-1)
+                {
+                    out << arr.at(i, arr.arr_shape[1]-1) << " ],\n";
+                }
+                else
+                {
+                    out << arr.at(i, arr.arr_shape[1]-1) << " ]\n";
+                }
             }
+
+            out << ']';
             
             return out;
         }
