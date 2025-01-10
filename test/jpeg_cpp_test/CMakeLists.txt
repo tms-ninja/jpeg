@@ -8,7 +8,12 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Catch2)
 
-add_executable(jpeg_cpp_test bit_string_test.cpp)
+add_executable(jpeg_cpp_test 
+              array_test.cpp
+              bit_string_test.cpp
+)
+
+
 target_link_libraries(jpeg_cpp_test PRIVATE jpeg_cpp Catch2::Catch2WithMain)
 
 # Add the actual test
