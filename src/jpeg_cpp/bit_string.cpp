@@ -38,6 +38,28 @@ namespace JPEG {
         buffer.resize(size/bits_per_char + (size % bits_per_char > 0));
     }
 
+    Bit_String::Bit_String(const std::string& s)
+    {
+        for (auto c: s)
+        {
+            switch (c)
+            {
+            case '0':
+                append_bit(0u);
+                break;    
+            case '1':
+                append_bit(1u);
+                break;  
+            default:
+                std::string what_msg{"'"};
+                what_msg += c;
+                what_msg += "' is not a valid character for a Bit_String (expected '0' or '1')";
+
+                throw std::domain_error(what_msg);
+            }
+        }
+    }
+
     size_t Bit_String::size() const
     {
         return buffer_size;
@@ -170,31 +192,5 @@ namespace JPEG {
         {
             append_bit(other_bs[bit_ind]);
         }
-    }
-
-    Bit_String Bit_String::from_string(const std::string& s)
-    {
-        Bit_String bs{};
-
-        for (auto c: s)
-        {
-            switch (c)
-            {
-            case '0':
-                bs.append_bit(0u);
-                break;    
-            case '1':
-                bs.append_bit(1u);
-                break;  
-            default:
-                std::string what_msg{"'"};
-                what_msg += c;
-                what_msg += "' is not a valid character for a Bit_String (expected '0' or '1')";
-
-                throw std::domain_error(what_msg);
-            }
-        }
-
-        return bs;
     }
 }
