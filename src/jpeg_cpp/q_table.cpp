@@ -24,11 +24,11 @@ namespace JPEG
         return out;
     }
 
-    Q_Table Q_Table::load_spec_table(Component_type type)
+    Q_Table Q_Table::load_spec_table(Image_Component type)
     {
         Q_Table q_table;
 
-        if (type==Component_type::Luminance)
+        if (type==Image_Component::Luminance)
         {
             q_table = Q_Table{
                 {16, 11, 10, 16,  24,  40,  51,  61},
