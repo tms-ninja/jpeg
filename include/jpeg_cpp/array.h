@@ -51,14 +51,14 @@ namespace JPEG {
 
         T& operator[](size_t ind) 
         { 
-            assert(("Index out of bounds", ind<size()));
+            assert("Index out of bounds" && ind<size());
             
             return buffer[ind];
         }
 
         const T& operator[](size_t ind) const
         { 
-            assert(("Index out of bounds", ind<size()));
+            assert("Index out of bounds" && ind<size());
 
             return buffer[ind];
         }
@@ -104,9 +104,9 @@ namespace JPEG {
         {
             
             arr_shape[0] = ls.size();
-            assert(("Dimension 0 of Array_2d cannot be zero", arr_shape[0]!=0));
+            assert("Dimension 0 of Array_2d cannot be zero" && arr_shape[0]!=0);
             arr_shape[1] = (*ls.begin()).size();
-            assert(("Dimension 1 of Array_2d cannot be zero", arr_shape[1]!=0));
+            assert("Dimension 1 of Array_2d cannot be zero" && arr_shape[1]!=0);
 
             buffer.resize(arr_shape[0]*arr_shape[1]);
 
@@ -115,7 +115,7 @@ namespace JPEG {
             for (auto& row: ls)
             {
                 // Verify the row size
-                assert(("Rows of Array_2d must have the same size", row.size()==arr_shape[1]));
+                assert("Rows of Array_2d must have the same size" && row.size()==arr_shape[1]);
 
                 // remember to reset j
                 j = 0;
@@ -147,7 +147,7 @@ namespace JPEG {
         /// @return Element at index ind
         T& operator[](size_t ind) 
         { 
-            assert(("Index out of bounds", ind<size()));
+            assert("Index out of bounds" && ind<size());
             
             return buffer[ind];
         }
@@ -157,7 +157,7 @@ namespace JPEG {
         /// @return Element at index ind
         const T& operator[](size_t ind) const 
         { 
-            assert(("Index out of bounds", ind<size()));
+            assert("Index out of bounds" && ind<size());
 
             return buffer[ind];
         }
@@ -169,7 +169,7 @@ namespace JPEG {
         T& at(size_t row, size_t column)
         {
             size_t ind{ row*arr_shape[1] + column };
-            assert(("Index out of bounds", ind<size()));
+            assert("Index out of bounds" && ind<size());
 
             return buffer[ind];
         }
@@ -181,7 +181,7 @@ namespace JPEG {
         const T& at(size_t row, size_t column) const
         {
             size_t ind{ row*arr_shape[1] + column };
-            assert(("Index out of bounds", ind<size()));
+            assert("Index out of bounds" && ind<size());
 
             return buffer[ind];
         }
@@ -268,12 +268,12 @@ namespace JPEG {
 
                 for (auto& row: data_unit)
                 {
-                    assert(("Data units of DU_Array must have 8 rows", row.size()==DU_height));
+                    assert("Data units of DU_Array must have 8 rows" && row.size()==DU_height);
                     j = 0;
 
                     for (auto& elem: row)
                     {
-                        assert(("Data unit rows of DU_Array must have 8 columns", row.size()==DU_width));
+                        assert("Data unit rows of DU_Array must have 8 columns" && row.size()==DU_width);
 
                         at(du_ind, i, j) = elem;
                         j++;
@@ -302,7 +302,7 @@ namespace JPEG {
         /// @return Element at index ind
         T& operator[](size_t ind) 
         { 
-            assert(("Index out of bounds", ind<size()));
+            assert("Index out of bounds" && ind<size());
             
             return buffer[ind]; 
         }
@@ -312,7 +312,7 @@ namespace JPEG {
         /// @return Element at index ind
         const T& operator[](size_t ind) const 
         { 
-            assert(("Index out of bounds", ind<size()));
+            assert("Index out of bounds" && ind<size());
             
             return buffer[ind]; 
         }
@@ -327,7 +327,7 @@ namespace JPEG {
             size_t buffer_ind;
 
             buffer_ind = DU_ind*DU_height*DU_width + row*DU_width + column;
-            assert(("Index out of bounds", buffer_ind<size()));
+            assert("Index out of bounds" && buffer_ind<size());
 
             return buffer[buffer_ind];
         }
@@ -342,7 +342,7 @@ namespace JPEG {
             size_t buffer_ind;
 
             buffer_ind = DU_ind*DU_height*DU_width + row*DU_width + column;
-            assert(("Index out of bounds", buffer_ind<size()));
+            assert("Index out of bounds" && buffer_ind<size());
 
             return buffer[buffer_ind];
         }
