@@ -1,10 +1,14 @@
 #ifndef GENERAL_H
 #define GENERAL_H
 
-enum class Image_Component
+namespace JPEG
 {
-    Luminance,
-    Chrominance
-};
+    /// @brief Represents the type of an image component
+    enum class Image_Component
+    {
+        Luminance,
+        Chrominance
+    };
+}
 
 #endif
