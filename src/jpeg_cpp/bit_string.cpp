@@ -39,6 +39,7 @@ namespace JPEG {
     }
 
     Bit_String::Bit_String(const std::string& s)
+    : buffer_size{ 0 }
     {
         for (auto c: s)
         {
