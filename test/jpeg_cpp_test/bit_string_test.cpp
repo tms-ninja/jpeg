@@ -34,16 +34,16 @@ TEST_CASE( "Bit_String::equality of Bit_Strings", "[Bit_String]" ) {
 TEST_CASE( "Bit_String::bits can be appended", "[Bit_String]" ) {
 
     SECTION( "when Bit_String::size() is a multiple of 8" ) {
-        Bit_String bs_initial{ Bit_String::from_string("") };
-        Bit_String bs_expected{ Bit_String::from_string("1") };
+        Bit_String bs_initial{ "" };
+        Bit_String bs_expected{ "1" };
 
         bs_initial.append_bit(1);
 
         REQUIRE( bs_initial == bs_expected );
     }
     SECTION( "when Bit_String::size() is not a multiple of 8" ) {
-        Bit_String bs_initial{ Bit_String::from_string("100") };
-        Bit_String bs_expected{ Bit_String::from_string("1001") };
+        Bit_String bs_initial{ "100" };
+        Bit_String bs_expected{ "1001" };
 
         bs_initial.append_bit(1);
 
@@ -56,8 +56,8 @@ TEST_CASE( "Bit_String::last ssss bits of unsigned int can be appended", "[Bit_S
     const unsigned int test_n{ 0b001111001010u };
 
     SECTION( "ssss == 0" ) {
-        Bit_String bs_initial{ Bit_String::from_string("") };
-        Bit_String bs_expected{ Bit_String::from_string("") };
+        Bit_String bs_initial{ "" };
+        Bit_String bs_expected{ "" };
         int ssss{ 0 };
 
         bs_initial.append_last_ssss_bits(test_n, ssss);
@@ -65,8 +65,8 @@ TEST_CASE( "Bit_String::last ssss bits of unsigned int can be appended", "[Bit_S
         REQUIRE( bs_initial == bs_expected );
     }
     SECTION( "0 <= ssss <= 7" ) {
-        Bit_String bs_initial{ Bit_String::from_string("") };
-        Bit_String bs_expected{ Bit_String::from_string("01010") };
+        Bit_String bs_initial{ "" };
+        Bit_String bs_expected{ "01010" };
         int ssss{ 5 };
 
         bs_initial.append_last_ssss_bits(test_n, ssss);
@@ -74,8 +74,8 @@ TEST_CASE( "Bit_String::last ssss bits of unsigned int can be appended", "[Bit_S
         REQUIRE( bs_initial == bs_expected );
     }
     SECTION( "ssss > 8" ) {
-        Bit_String bs_initial{ Bit_String::from_string("") };
-        Bit_String bs_expected{ Bit_String::from_string("111001010") };
+        Bit_String bs_initial{ "" };
+        Bit_String bs_expected{ "111001010" };
         int ssss{ 9 };
 
         bs_initial.append_last_ssss_bits(test_n, ssss);
@@ -89,16 +89,16 @@ TEST_CASE( "Bit_String::bytes can be appended", "[Bit_String]" ) {
     const unsigned char test_byte{ 0b11100101u };
 
     SECTION( "Bit_string::size() is a multiple of 8" ) {
-        Bit_String bs_initial{ Bit_String::from_string("") };
-        Bit_String bs_expected{ Bit_String::from_string("11100101") };
+        Bit_String bs_initial{ "" };
+        Bit_String bs_expected{ "11100101" };
 
         bs_initial.append_byte(test_byte);
 
         REQUIRE( bs_initial == bs_expected );
     }
     SECTION( "Bit_string::size() is not a multiple of 8" ) {
-        Bit_String bs_initial{ Bit_String::from_string("00") };
-        Bit_String bs_expected{ Bit_String::from_string("0011100101") };
+        Bit_String bs_initial{ "00" };
+        Bit_String bs_expected{ "0011100101" };
 
         bs_initial.append_byte(test_byte);
         
@@ -108,19 +108,19 @@ TEST_CASE( "Bit_String::bytes can be appended", "[Bit_String]" ) {
 
 TEST_CASE( "Bit_String::can be extended with other Bit_Strings", "[Bit_String]" ) {
 
-    Bit_String bs_for_extending{ Bit_String::from_string("11100101111") };
+    Bit_String bs_for_extending{ "11100101111" };
 
     SECTION( "Bit_string::size() is a multiple of 8" ) {
-        Bit_String bs_initial{ Bit_String::from_string("") };
-        Bit_String bs_expected{ Bit_String::from_string("11100101111") };
+        Bit_String bs_initial{ "" };
+        Bit_String bs_expected{ "11100101111" };
 
         bs_initial.extend(bs_for_extending);
 
         REQUIRE( bs_initial == bs_expected );
     }
     SECTION( "Bit_string::size() is not a multiple of 8" ) {
-        Bit_String bs_initial{ Bit_String::from_string("00") };
-        Bit_String bs_expected{ Bit_String::from_string("0011100101111") };
+        Bit_String bs_initial{ "00" };
+        Bit_String bs_expected{ "0011100101111" };
 
         bs_initial.extend(bs_for_extending);
         
@@ -131,12 +131,12 @@ TEST_CASE( "Bit_String::can be extended with other Bit_Strings", "[Bit_String]" 
 TEST_CASE( "Bit_String::Bit_Strings can be created from strings", "[Bit_String]" ) {
 
     SECTION( "empty string produces Bit_string of zero length" ) {
-        Bit_String bs{ Bit_String::from_string("") };
+        Bit_String bs{ "" };
 
         REQUIRE( bs.size() == 0 );
     }
     SECTION( "string of non-zero length" ) {
-        Bit_String bs_from_string{ Bit_String::from_string("01001") };
+        Bit_String bs_from_string{ "01001" };
         Bit_String bs_expected{ 5 };
 
         bs_expected[1] = 1;

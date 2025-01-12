@@ -48,6 +48,11 @@ namespace JPEG {
         /// @param size Number of bits of the new Bit_String
         Bit_String(size_t size);
 
+        /// @brief Creates a Bit_String from a string
+        /// @param s String containing '0' and '1'
+        /// @return New Bit_String
+        Bit_String(const std::string& s);
+
         /// @brief Number of bits in the Bit_String
         /// @return Number of bits
         size_t size() const;
@@ -83,11 +88,6 @@ namespace JPEG {
         /// @brief Extends the given Bit_string with the contents of another Bit_String
         /// @param other_bs The other Bit_String from which bits are sourced
         void extend(const Bit_String& other_bs);
-
-        /// @brief Creates a Bit_String from a string
-        /// @param s String containing '0' and '1'
-        /// @return New Bit_String
-        static Bit_String from_string(const std::string& s);
     };
 }
 

@@ -4,6 +4,7 @@
 #include <array>
 
 #include "jpeg_cpp/array.h"
+#include "general.h"
 
 namespace JPEG
 {
@@ -69,16 +70,10 @@ namespace JPEG
 
         friend std::ostream& operator<<(std::ostream& out, const Q_Table& q_table);
 
-        enum class Component_type
-        {
-            Luminance,
-            Chrominance
-        };
-
         /// @brief Loads an example quantization table from the JPEG spec
         /// @param type Component type (Luminance/Chromiance)
         /// @return Quantization table
-        static Q_Table load_spec_table(Component_type type);
+        static Q_Table load_spec_table(Image_Component type);
     };
 }
 

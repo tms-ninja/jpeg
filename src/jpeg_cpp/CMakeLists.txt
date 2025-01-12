@@ -5,6 +5,8 @@ add_library(jpeg_cpp SHARED
             array.cpp
             "${jpeg_SOURCE_DIR}/include/jpeg_cpp/bit_string.h"
             bit_string.cpp
+            "${jpeg_SOURCE_DIR}/include/jpeg_cpp/huff_table.h"
+            huff_table.cpp
             "${jpeg_SOURCE_DIR}/include/jpeg_cpp/q_table.h"
             q_table.cpp
 )
