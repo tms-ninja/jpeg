@@ -11,6 +11,7 @@ FetchContent_MakeAvailable(Catch2)
 add_executable(jpeg_cpp_test 
               array_test.cpp
               bit_string_test.cpp
+              encoding_test.cpp
               huff_table_test.cpp
               q_table_test.cpp
 )
