@@ -79,4 +79,41 @@ namespace JPEG
             mat_mul(DCT_matrix_transpose.data(), &double_buffer[0], &array[du_ind*64], arr_shape[1]);
         }
     }
+
+    void apply_quantization(DU_Array<double> &array, const Q_Table& q_table)
+    {
+        // Need to apply factors of sqrt(2) to the elements of the q_table that
+        // come from the DCT
+        Array_2d<double> q_table_corrected{ q_table.shape()[0],  q_table.shape()[1] };
+
+        for (size_t i = 0; i < q_table_corrected.shape()[0]; i++)
+        {
+            for (size_t j = 0; j < q_table_corrected.shape()[1]; j++)
+            {
+                q_table_corrected(i, j) = q_table(i, j);
+
+                if (i==0)
+                {
+                    q_table_corrected(i, j) *= std::sqrt(2.0);
+                }
+                
+                if (j==0)
+                {
+                    q_table_corrected(i, j) *= std::sqrt(2.0);
+                }
+            }
+        }
+
+        // Now we can apply quantization
+        for (size_t du_ind = 0; du_ind < array.shape()[0]; du_ind++)
+        {
+            for (size_t i = 0; i < array.shape()[1]; i++)
+            {
+                for (size_t j = 0; j < array.shape()[2]; j++)
+                {
+                    array(du_ind, i, j) = std::round(array(du_ind, i, j) / q_table_corrected(i, j));
+                }
+            }
+        }
+    }
 }

@@ -8,6 +8,7 @@
 #include <cmath>
 
 #include "jpeg_cpp/array.h"
+#include "jpeg_cpp/q_table.h"
 
 namespace JPEG
 {
@@ -34,6 +35,8 @@ namespace JPEG
     void mat_mul(const double* a, const double* b, double* c, size_t N);
 
     void apply_DCT(DU_Array<double>& array);
+
+    void apply_quantization(DU_Array<double>& array, const Q_Table& q_table);
 }
 
 #endif

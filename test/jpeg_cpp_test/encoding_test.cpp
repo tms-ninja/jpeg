@@ -70,6 +70,23 @@ DU_Array<double> gen_2_DU_Array()
     return array;
 }
 
+// Loads the quantization table on the Wikipedia JPEG page
+Q_Table gen_wiki_q_table()
+{
+    Q_Table table{
+        {16, 11, 10, 16, 24, 40, 51, 61},
+        {12, 12, 14, 19, 26, 58, 60, 55},
+        {14, 13, 16, 24, 40, 57, 69, 56},
+        {14, 17, 22, 29, 51, 87, 80, 62},
+        {18, 22, 37, 56, 68, 109, 103, 77},
+        {24, 35, 55, 64, 81, 104, 113, 92},
+        {49, 64, 78, 87, 103, 121, 120, 101},
+        {72, 92, 95, 98, 112, 100, 103, 99}
+    };
+
+    return table;
+}
+
 TEST_CASE( "apply_level_shift()::level shift values in DU_Array", "[apply_level_shift()]" ) {
     DU_Array<double> array{ gen_arange_DU_Array() };
     
@@ -222,5 +239,73 @@ TEST_CASE( "apply_DCT()::applies correct transform to multiple data units", "[ap
     {
         // Note sure why some seem so off, increase the tolerance for now
         REQUIRE_THAT( input_array[ind], WithinRel(expected_result[ind], 1e-12) );
+    }
+}
+
+TEST_CASE( "apply_quantization()::correctly quantizes a single data unit", "[apply_quantization()]" ) {
+    DU_Array<double> input_array{ gen_wiki_DU_Array() };
+    apply_level_shift(input_array);
+    apply_DCT(input_array);
+
+    Q_Table q_table{ gen_wiki_q_table() };
+
+    DU_Array<double> expected_result{{
+        {-26.,  -3.,  -6.,   2.,   2.,  -1.,  -0.,   0.},
+        {  0.,  -2.,  -4.,   1.,   1.,  -0.,  -0.,   0.},
+        { -3.,   1.,   5.,  -1.,  -1.,   0.,   0.,  -0.},
+        { -3.,   1.,   2.,  -1.,  -0.,   0.,   0.,   0.},
+        {  1.,  -0.,  -0.,  -0.,  -0.,   0.,  -0.,   0.},
+        { -0.,   0.,   0.,  -0.,  -0.,   0.,   0.,   0.},
+        { -0.,   0.,   0.,  -0.,  -0.,  -0.,   0.,  -0.},
+        { -0.,   0.,  -0.,  -0.,  -0.,  -0.,   0.,   0.}
+    }};
+
+    // Now perform the quantization
+    apply_quantization(input_array, q_table);
+
+    // Verify quantization was performed correctly
+    for (size_t ind = 0; ind < input_array.size(); ind++)
+    {
+        REQUIRE_THAT( input_array[ind], WithinRel(expected_result[ind]) );
+    }
+}
+
+TEST_CASE( "apply_quantization()::correctly quantizes multiple data units", "[apply_quantization()]" ) {
+    DU_Array<double> input_array{ gen_2_DU_Array() };
+    apply_level_shift(input_array);
+    apply_DCT(input_array);
+
+    Q_Table q_table{ gen_wiki_q_table() };
+
+    DU_Array<double> expected_result{
+        {
+            {-26.,  -3.,  -6.,   2.,   2.,  -1.,  -0.,   0.},
+            {  0.,  -2.,  -4.,   1.,   1.,  -0.,  -0.,   0.},
+            { -3.,   1.,   5.,  -1.,  -1.,   0.,   0.,  -0.},
+            { -3.,   1.,   2.,  -1.,  -0.,   0.,   0.,   0.},
+            {  1.,  -0.,  -0.,  -0.,  -0.,   0.,  -0.,   0.},
+            { -0.,   0.,   0.,  -0.,  -0.,   0.,   0.,   0.},
+            { -0.,   0.,   0.,  -0.,  -0.,  -0.,   0.,  -0.},
+            { -0.,   0.,  -0.,  -0.,  -0.,  -0.,   0.,   0.}
+        },
+        {
+            {-26.,   0.,  -5.,  -3.,   1.,  -0.,  -0.,  -0.},
+            { -3.,  -2.,   1.,   1.,  -0.,   0.,   0.,   0.},
+            { -4.,  -5.,   5.,   1.,  -0.,   0.,   0.,  -0.},
+            {  2.,   1.,  -1.,  -1.,  -0.,  -0.,  -0.,  -0.},
+            {  3.,   1.,  -1.,  -0.,  -0.,  -0.,  -0.,  -0.},
+            { -1.,  -0.,   0.,   0.,   0.,   0.,  -0.,  -0.},
+            { -0.,  -0.,   0.,   0.,  -0.,   0.,   0.,   0.},
+            {  0.,   0.,  -0.,   0.,   0.,   0.,  -0.,   0.}
+        }
+    };
+
+    // Now perform the quantization
+    apply_quantization(input_array, q_table);
+
+    // Verify quantization was performed correctly
+    for (size_t ind = 0; ind < input_array.size(); ind++)
+    {
+        REQUIRE_THAT( input_array[ind], WithinRel(expected_result[ind]) );
     }
 }
