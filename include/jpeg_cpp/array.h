@@ -354,7 +354,7 @@ namespace JPEG {
         /// @return Element at given row/column of the selected data unit
         T& operator()(size_t DU_ind, size_t row, size_t column)
         {
-            at(DU_ind, row, column);
+            return at(DU_ind, row, column);
         }
 
         /// @brief Gets the element at the given row/column of the selected data unit
@@ -364,7 +364,7 @@ namespace JPEG {
         /// @return Element at given row/column of the selected data unit
         const T& operator()(size_t DU_ind, size_t row, size_t column) const
         {
-            at(DU_ind, row, column);
+            return at(DU_ind, row, column);
         }
 
         friend std::ostream& operator<<(std::ostream& out, const DU_Array<T>& du_arr)
