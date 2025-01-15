@@ -6,6 +6,7 @@
 
 #include "jpeg_cpp/array.h"
 #include "jpeg_cpp/encoding.h"
+#include "jpeg_cpp/huff_table.h"
 
 using namespace Catch::Matchers;
 using namespace JPEG;
@@ -375,5 +376,92 @@ TEST_CASE( "compute_ssss()::computes the ssss value of a number", "[compute_ssss
         unsigned int n{ 2048 };
 
         REQUIRE_THROWS_AS( compute_ssss(n), std::invalid_argument );
+    }
+}
+
+TEST_CASE( "encode_DC_coeff()::encodes a DC coefficient correctly", "[encode_DC_coeff()]" ) {
+    Huff_Table huff_table{ Huff_Table::load_DC_table(Image_Component::Luminance) };
+    Bit_String actual_result{};
+
+    SECTION( "diff = 0")
+    {
+        int diff{ 0 };
+        Bit_String expected_result{ "00" };
+        
+        encode_DC_coeff(actual_result, diff, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "diff = 1")
+    {
+        int diff{ 1 };
+        Bit_String expected_result{ "0101" };
+        
+        encode_DC_coeff(actual_result, diff, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "diff = -1")
+    {
+        int diff{ -1 };
+        Bit_String expected_result{ "0100" };
+        
+        encode_DC_coeff(actual_result, diff, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "diff = 2")
+    {
+        int diff{ 2 };
+        Bit_String expected_result{ "01110" };
+        
+        encode_DC_coeff(actual_result, diff, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "diff = -2")
+    {
+        int diff{ -2 };
+        Bit_String expected_result{ "01101" };
+        
+        encode_DC_coeff(actual_result, diff, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "diff = 5")
+    {
+        int diff{ 5 };
+        Bit_String expected_result{ "100101" };
+        
+        encode_DC_coeff(actual_result, diff, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "diff = -5")
+    {
+        int diff{ -5 };
+        Bit_String expected_result{ "100010" };
+        
+        encode_DC_coeff(actual_result, diff, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "diff = 2047")
+    {
+        int diff{ 2047 };
+        Bit_String expected_result{ "11111111011111111111" };
+        
+        encode_DC_coeff(actual_result, diff, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "diff = -2047")
+    {
+        int diff{ -2047 };
+        Bit_String expected_result{ "11111111000000000000" };
+        
+        encode_DC_coeff(actual_result, diff, huff_table);
+
+        REQUIRE( actual_result == expected_result );
     }
 }

@@ -140,4 +140,34 @@ namespace JPEG
 
         return ssss+1;
     }
+
+    void encode_DC_coeff(Bit_String& bs, int diff, const Huff_Table& huff_table)
+    {
+        unsigned int ssss{ compute_ssss(std::abs(diff)) };
+        
+        // Append the Huffman code corresponding to the ssss value
+        bs.extend(huff_table[ssss]);
+
+        // Now need to append last ssss bits of:
+        // - diff if diff>0
+        // - (diff-1) if diff<0
+        // Note the spec says diff should be represented in 12 bit two's-complement.
+        // The two's-complement of a negative number can therefore be computed as 
+        // (~n) + 1. Note the two's-complement of 0 is 0.
+        // So for the cas of diff<0 we can just append last ssss bits of ~diff.
+        // Since diff=0 corresponds to ssss=0, we don't need to worry about it
+        if (diff==0)
+        {
+            return;
+        }
+
+        if (diff>0)
+        {
+            bs.append_last_ssss_bits(diff, ssss);
+        }
+        else
+        {
+            bs.append_last_ssss_bits(~static_cast<unsigned int>(-diff), ssss);
+        }
+    }
 }

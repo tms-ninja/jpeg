@@ -9,6 +9,8 @@
 #include <stdexcept>
 
 #include "jpeg_cpp/array.h"
+#include "jpeg_cpp/bit_string.h"
+#include "jpeg_cpp/huff_table.h"
 #include "jpeg_cpp/q_table.h"
 
 namespace JPEG
@@ -44,6 +46,12 @@ namespace JPEG
     /// @param n 
     /// @return The ssss of n
     unsigned int compute_ssss(unsigned int n);
+
+    /// @brief Encodes a DC coefficient and appends the result to the Bit_String
+    /// @param bs Bit_String to append encoded DC coefficient to
+    /// @param diff Difference between the current DC coefficient and the previous DC coefficient
+    /// @param huff_table DC Huffman table
+    void encode_DC_coeff(Bit_String& bs, int diff, const Huff_Table& huff_table);
 }
 
 #endif
