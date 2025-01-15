@@ -116,4 +116,28 @@ namespace JPEG
             }
         }
     }
+
+    unsigned int compute_ssss(unsigned int n)
+    {
+        // Check n<=2047 as expected
+        if (n>2047)
+        {
+            throw std::invalid_argument("n cannot be greater than 2047");
+        }
+
+        if (n==0)
+        {
+            return 0;
+        }
+
+        // Assume n<=2047 so that ssss<=11
+        unsigned int ssss{ 11 };
+
+        while ((n >> ssss) == 0)
+        {
+            ssss -= 1;
+        }
+
+        return ssss+1;
+    }
 }

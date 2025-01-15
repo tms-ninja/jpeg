@@ -2,6 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <array>
+#include <stdexcept>
 
 #include "jpeg_cpp/array.h"
 #include "jpeg_cpp/encoding.h"
@@ -307,5 +308,72 @@ TEST_CASE( "apply_quantization()::correctly quantizes multiple data units", "[ap
     for (size_t ind = 0; ind < input_array.size(); ind++)
     {
         REQUIRE_THAT( input_array[ind], WithinRel(expected_result[ind]) );
+    }
+}
+
+TEST_CASE( "compute_ssss()::computes the ssss value of a number", "[compute_ssss()]" ) {
+
+    SECTION( "n = 0")
+    {
+        unsigned int n{ 0 };
+        unsigned int expected_result{ 0 };
+        unsigned int actual_result{ compute_ssss(n) };
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "n = 1")
+    {
+        unsigned int n{ 1 };
+        unsigned int expected_result{ 1 };
+        unsigned int actual_result{ compute_ssss(n) };
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "n = 4")
+    {
+        unsigned int n{ 4 };
+        unsigned int expected_result{ 3 };
+        unsigned int actual_result{ compute_ssss(n) };
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "n = 5")
+    {
+        unsigned int n{ 5 };
+        unsigned int expected_result{ 3 };
+        unsigned int actual_result{ compute_ssss(n) };
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "n = 7")
+    {
+        unsigned int n{ 7 };
+        unsigned int expected_result{ 3 };
+        unsigned int actual_result{ compute_ssss(n) };
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "n = 1024")
+    {
+        unsigned int n{ 1024 };
+        unsigned int expected_result{ 11 };
+        unsigned int actual_result{ compute_ssss(n) };
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "n = 2047")
+    {
+        unsigned int n{ 2047 };
+        unsigned int expected_result{ 11 };
+        unsigned int actual_result{ compute_ssss(n) };
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "n = 2048")
+    {
+        // Expect this to throw an invalid argument exception
+        unsigned int n{ 2048 };
+
+        REQUIRE_THROWS_AS( compute_ssss(n), std::invalid_argument );
     }
 }

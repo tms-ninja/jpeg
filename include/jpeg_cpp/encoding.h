@@ -6,6 +6,7 @@
 // Needed to access pi constant
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <stdexcept>
 
 #include "jpeg_cpp/array.h"
 #include "jpeg_cpp/q_table.h"
@@ -37,6 +38,12 @@ namespace JPEG
     void apply_DCT(DU_Array<double>& array);
 
     void apply_quantization(DU_Array<double>& array, const Q_Table& q_table);
+
+    /// @brief Computes ssss value of a number. For n!=0, this is the number such that 
+    /// n >> ssss == 1. For n==0 this is 0. This function assumes ssss<=11, i.e. n<=2047.
+    /// @param n 
+    /// @return The ssss of n
+    unsigned int compute_ssss(unsigned int n);
 }
 
 #endif
