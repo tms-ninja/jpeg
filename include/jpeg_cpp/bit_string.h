@@ -2,6 +2,7 @@
 #define BIT_STRING_H
 
 #include <climits>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <vector>

@@ -1,6 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include "jpeg_cpp/bit_string.h"
 
+#include <sstream>
+#include <string>
+
 using namespace JPEG;
 
 TEST_CASE( "Bit_String::equality of Bit_Strings", "[Bit_String]" ) {
@@ -146,4 +149,30 @@ TEST_CASE( "Bit_String::Bit_Strings can be created from strings", "[Bit_String]"
     }
 }
 
+TEST_CASE( "Bit_String::oputput to iostream", "[Bit_String]" ) {
 
+    SECTION( "empty Bit_string produces empty string" ) {
+        Bit_String bs{ "" };
+        std::string str_expected{};
+
+        std::stringstream str_stream;
+
+        str_stream << bs;
+
+        std::string str_actual{ str_stream.str() };
+        
+        REQUIRE( str_actual == str_expected );
+    }
+    SECTION( "non-zero length Bit_String produces correct output" ) {
+        Bit_String bs{ "1011" };
+        std::string str_expected{ "1011" };
+
+        std::stringstream str_stream;
+
+        str_stream << bs;
+
+        std::string str_actual{ str_stream.str() };
+        
+        REQUIRE( str_actual == str_expected );
+    }
+}
