@@ -2,6 +2,7 @@
 #define ENCODING_H
 
 #include <array>
+#include <cassert>
 
 // Needed to access pi constant
 #define _USE_MATH_DEFINES
@@ -52,6 +53,13 @@ namespace JPEG
     /// @param diff Difference between the current DC coefficient and the previous DC coefficient
     /// @param huff_table DC Huffman table
     void encode_DC_coeff(Bit_String& bs, int diff, const Huff_Table& huff_table);
+
+    /// @brief Encodes a non-zero coefficient
+    /// @param bs Bit_String to append encoded AC coefficient to
+    /// @param coeff Current AC coefficient to encode
+    /// @param rrrr Current run length of zeros
+    /// @param huff_table AC Huffman table
+    void encode_AC_coeff(Bit_String& bs, int coeff, unsigned int rrrr, const Huff_Table& huff_table);
 }
 
 #endif

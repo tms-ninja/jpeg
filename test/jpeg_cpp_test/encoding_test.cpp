@@ -465,3 +465,246 @@ TEST_CASE( "encode_DC_coeff()::encodes a DC coefficient correctly", "[encode_DC_
         REQUIRE( actual_result == expected_result );
     }
 }
+
+TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 0", "[encode_AC_coeff()]" ) {
+    Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
+    Bit_String actual_result{};
+    unsigned int rrrr{ 0 };
+
+    SECTION( "rrrr = 0, coeff = 1")
+    {
+        int coeff{ 1 };
+        Bit_String expected_result{ "001" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "rrrr = 0, coeff = -1")
+    {
+        int coeff{ -1 };
+        Bit_String expected_result{ "000" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "rrrr = 0, coeff = 2")
+    {
+        int coeff{ 2 };
+        Bit_String expected_result{ "0110" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "rrrr = 0, coeff = -2")
+    {
+        int coeff{ -2 };
+        Bit_String expected_result{ "0101" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "rrrr = 0, coeff = 5")
+    {
+        int coeff{ 5 };
+        Bit_String expected_result{ "100101" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "rrrr = 0, coeff = -5")
+    {
+        int coeff{ -5 };
+        Bit_String expected_result{ "100010" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+
+    // Note maximum ssss for AC coefficients is 10, unlike for DC coefficients where it's 11
+    SECTION( "rrrr = 0, coeff = 1023")
+    {
+        int coeff{ 1023 };
+        Bit_String expected_result{ "11111111100000111111111111" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "rrrr = 0, coeff = -1023")
+    {
+        int coeff{ -1023 };
+        Bit_String expected_result{ "11111111100000110000000000" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+}
+
+TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 5", "[encode_AC_coeff()]" ) {
+    Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
+    Bit_String actual_result{};
+    unsigned int rrrr{ 5 };
+
+    SECTION( "rrrr = 5, coeff = 1")
+    {
+        int coeff{ 1 };
+        Bit_String expected_result{ "11110101" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "rrrr = 5, coeff = -1")
+    {
+        int coeff{ -1 };
+        Bit_String expected_result{ "11110100" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "rrrr = 5, coeff = 2")
+    {
+        int coeff{ 2 };
+        Bit_String expected_result{ "1111111011110" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "rrrr = 5, coeff = -2")
+    {
+        int coeff{ -2 };
+        Bit_String expected_result{ "1111111011101" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "rrrr = 5, coeff = 5")
+    {
+        int coeff{ 5 };
+        Bit_String expected_result{ "1111111110011110101" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "rrrr = 5, coeff = -5")
+    {
+        int coeff{ -5 };
+        Bit_String expected_result{ "1111111110011110010" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+
+    // Note maximum ssss for AC coefficients is 10, unlike for DC coefficients where it's 11
+    SECTION( "rrrr = 5, coeff = 1023")
+    {
+        int coeff{ 1023 };
+        Bit_String expected_result{ "11111111101001011111111111" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "rrrr = 5, coeff = -1023")
+    {
+        int coeff{ -1023 };
+        Bit_String expected_result{ "11111111101001010000000000" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+}
+
+TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 15", "[encode_AC_coeff()]" ) {
+    Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
+    Bit_String actual_result{};
+    unsigned int rrrr{ 15 };
+
+    SECTION( "rrrr = 15, coeff = 1")
+    {
+        int coeff{ 1 };
+        Bit_String expected_result{ "11111111111101011" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "rrrr = 15, coeff = -1")
+    {
+        int coeff{ -1 };
+        Bit_String expected_result{ "11111111111101010" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "rrrr = 15, coeff = 2")
+    {
+        int coeff{ 2 };
+        Bit_String expected_result{ "111111111111011010" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "rrrr = 15, coeff = -2")
+    {
+        int coeff{ -2 };
+        Bit_String expected_result{ "111111111111011001" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "rrrr = 15, coeff = 5")
+    {
+        int coeff{ 5 };
+        Bit_String expected_result{ "1111111111110111101" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "rrrr = 15, coeff = -5")
+    {
+        int coeff{ -5 };
+        Bit_String expected_result{ "1111111111110111010" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+
+    // Note maximum ssss for AC coefficients is 10, unlike for DC coefficients where it's 11
+    SECTION( "rrrr = 15, coeff = 1023")
+    {
+        int coeff{ 1023 };
+        Bit_String expected_result{ "11111111111111101111111111" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "rrrr = 15, coeff = -1023")
+    {
+        int coeff{ -1023 };
+        Bit_String expected_result{ "11111111111111100000000000" };
+        
+        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+}

@@ -170,4 +170,22 @@ namespace JPEG
             bs.append_last_ssss_bits(~static_cast<unsigned int>(-diff), ssss);
         }
     }
+
+    void encode_AC_coeff(Bit_String& bs, int coeff, unsigned int rrrr, const Huff_Table& huff_table)
+    {
+        assert("coeff should not be zero" && coeff!=0);
+        assert("rrrr must be less than 16" && rrrr<16);
+
+        unsigned int ssss{ compute_ssss(std::abs(coeff)) };
+        unsigned int rrrrssss{ (rrrr << 4) + ssss };
+
+        // Append the Huffman code encoding rrrrssss to the output
+        bs.extend(huff_table[rrrrssss]);
+
+        // Like with the DC coefficient we need to simply append last ssss bits of ac_coeff
+        // if ac_coeff>0 or ~(-ac_coeff) if it's negative
+        unsigned int value_to_encode{ coeff>0 ? coeff : ~static_cast<unsigned int>(-coeff) };
+
+        bs.append_last_ssss_bits(value_to_encode, ssss);
+    }
 }
