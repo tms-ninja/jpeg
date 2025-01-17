@@ -708,3 +708,396 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 15", "[encode_AC_coe
         REQUIRE( actual_result == expected_result );
     }
 }
+
+TEST_CASE( "encode_AC_coeffs()::all entries the same", "[encode_AC_coeffs()]" ) {
+    Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
+    size_t du_ind{ 0 };
+    Bit_String actual_result{};
+
+    SECTION( "all entries zero") {
+        DU_Array<double> input_array{{
+            {0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0},
+        }};
+        
+        Bit_String expected_result{"1010"};
+
+        encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "all entries 1") {
+        DU_Array<double> input_array{{
+            {1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1},
+        }};
+        // Expected to be 001 repeated 63 times
+        Bit_String expected_result{
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+            "001"
+        };
+
+        encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+    SECTION( "all entries 1") {
+        DU_Array<double> input_array{{
+            {-1, -1, -1, -1, -1, -1, -1, -1},
+            {-1, -1, -1, -1, -1, -1, -1, -1},
+            {-1, -1, -1, -1, -1, -1, -1, -1},
+            {-1, -1, -1, -1, -1, -1, -1, -1},
+            {-1, -1, -1, -1, -1, -1, -1, -1},
+            {-1, -1, -1, -1, -1, -1, -1, -1},
+            {-1, -1, -1, -1, -1, -1, -1, -1},
+            {-1, -1, -1, -1, -1, -1, -1, -1},
+        }};
+        // Expected to be 000 repeated 63 times
+        Bit_String expected_result{
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+            "000"
+        };
+
+        encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+
+        REQUIRE( actual_result == expected_result );
+    }
+}
+
+TEST_CASE( "encode_AC_coeffs()::zig-zag ordering", "[encode_AC_coeffs()]" ) {
+    Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
+    size_t du_ind{ 0 };
+    
+    DU_Array<double> input_array{{
+        {0, 1, 5, 0, 0, 0, 0, 0},
+        {2, 4, 0, 0, 0, 0, 0, 0},
+        {3, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+    }};
+
+    Bit_String expected_result{
+        "001"     // 1
+        "0110"    // 2
+        "0111"    // 3
+        "100100"  // 4
+        "100101"  // 5
+        "1010"    // EOB
+    };
+    
+    Bit_String actual_result{};
+
+    encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+
+    REQUIRE( actual_result == expected_result );
+}
+
+TEST_CASE( "encode_AC_coeffs()::run of 1 zero", "[encode_AC_coeffs()]" ) {
+    Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
+    size_t du_ind{ 0 };
+    
+    DU_Array<double> input_array{{
+        {0, 1, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {1, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+    }};
+
+    Bit_String expected_result{
+        "001"    // 1
+        "11001"  // 1, with run of 1 zero
+        "1010"   // EOB
+    };
+    
+    Bit_String actual_result{};
+
+    encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+
+    REQUIRE( actual_result == expected_result );
+}
+
+TEST_CASE( "encode_AC_coeffs()::run of 5 zeros", "[encode_AC_coeffs()]" ) {
+    Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
+    size_t du_ind{ 0 };
+    
+    DU_Array<double> input_array{{
+        {0, 1, 0, 0, 0, 0, 0, 0},
+        {0, 0, 1, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+    }};
+
+    Bit_String expected_result{
+        "001"       // 1
+        "11110101"  // 1, with run of 5 zeros
+        "1010"      // EOB
+    };
+    
+    Bit_String actual_result{};
+
+    encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+
+    REQUIRE( actual_result == expected_result );
+}
+
+TEST_CASE( "encode_AC_coeffs()::run of 15 zeros", "[encode_AC_coeffs()]" ) {
+    Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
+    size_t du_ind{ 0 };
+    
+    DU_Array<double> input_array{{
+        {0, 1, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 1, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+    }};
+
+    Bit_String expected_result{
+        "001"                // 1
+        "11111111111101011"  // 1, with run of 15 zeros
+        "1010"               // EOB
+    };
+    
+    Bit_String actual_result{};
+
+    encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+
+    REQUIRE( actual_result == expected_result );
+}
+
+TEST_CASE( "encode_AC_coeffs()::run of 16 zeros", "[encode_AC_coeffs()]" ) {
+    Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
+    size_t du_ind{ 0 };
+    
+    DU_Array<double> input_array{{
+        {0, 1, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 1, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+    }};
+
+    Bit_String expected_result{
+        "001"          // 1
+        "11111111001"  // ZRL (run of 16 zeros)
+        "001"          // 1
+        "1010"         // EOB
+    };
+    
+    Bit_String actual_result{};
+
+    encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+
+    REQUIRE( actual_result == expected_result );
+}
+
+TEST_CASE( "encode_AC_coeffs()::run of 17 zeros", "[encode_AC_coeffs()]" ) {
+    Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
+    size_t du_ind{ 0 };
+    
+    DU_Array<double> input_array{{
+        {0, 1, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 1, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+    }};
+
+    Bit_String expected_result{
+        "001"          // 1
+        "11111111001"  // ZRL (run of 16 zeros)
+        "11001"        // 1, with run of 1 zero
+        "1010"         // EOB
+    };
+    
+    Bit_String actual_result{};
+
+    encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+
+    REQUIRE( actual_result == expected_result );
+}
+
+TEST_CASE( "encode_AC_coeffs()::run of 32 zeros", "[encode_AC_coeffs()]" ) {
+    Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
+    size_t du_ind{ 0 };
+    
+    DU_Array<double> input_array{{
+        {0, 1, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 1, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+    }};
+
+    Bit_String expected_result{
+        "001"          // 1
+        "11111111001"  // ZRL (run of 16 zeros)
+        "11111111001"  // ZRL (run of 16 zeros)
+        "001"          // 1
+        "1010"         // EOB
+    };
+    
+    Bit_String actual_result{};
+
+    encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+
+    REQUIRE( actual_result == expected_result );
+}
+

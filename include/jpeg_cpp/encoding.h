@@ -60,6 +60,14 @@ namespace JPEG
     /// @param rrrr Current run length of zeros
     /// @param huff_table AC Huffman table
     void encode_AC_coeff(Bit_String& bs, int coeff, unsigned int rrrr, const Huff_Table& huff_table);
+
+    /// @brief Encodes the AC coefficients of a data unit and appends the result to the Bit_String
+    /// @param bs Bit_String to append encoded DC coefficient to
+    /// @param du_array DU_Array with the data unit to encode
+    /// @param du_ind Index of the data unit within the DU_Array
+    /// @param huff_table AC Huffman table
+    void encode_AC_coeffs(Bit_String& bs, const DU_Array<double>& du_array, size_t du_ind,
+                            const Huff_Table& huff_table);
 }
 
 #endif

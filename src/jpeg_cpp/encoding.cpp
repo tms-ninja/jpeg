@@ -188,4 +188,63 @@ namespace JPEG
 
         bs.append_last_ssss_bits(value_to_encode, ssss);
     }
+
+    void encode_AC_coeffs(Bit_String& bs, const DU_Array<double>& du_array, size_t du_ind,
+                            const Huff_Table& huff_table)
+    {
+        // Offsets for the zig-zag pattern
+        const std::array<size_t, 64> zz{ 
+            0, 1, 8, 16, 9, 2, 3, 10, 17, 24, 32, 
+            25, 18, 11, 4, 5, 12, 19, 26, 33, 40, 
+            48, 41, 34, 27, 20, 13, 6, 7, 14, 21, 
+            28, 35, 42, 49, 56, 57, 50, 43, 36, 
+            29, 22, 15, 23, 30, 37, 44, 51, 58, 
+            59, 52, 45, 38, 31, 39, 46, 53, 60, 
+            61, 54, 47, 55, 62, 63
+         };
+        // Pointer to the start of the data unit we are encoding
+        const double* du_ptr{ du_array.data() + du_ind*64 };
+        size_t end_of_block{ 0x00 };  // EOB RRRRSSSS code
+        size_t zrl{ 0xF0 };  // ZRL RRRRSSSS code (run of 16 zeros)
+
+        // Index of the current coefficient we are encoding. Not k=0 correpsonds
+        // to the DC coefficient that we do not encode in this function
+        size_t k{ 0 };
+        size_t r{ 0 };  // Current run length of zeros. Can be much higher than 16, i.e. 32+
+
+        while (k<63)
+        {
+            k++;
+
+            // Get the next value to encode
+            int value_to_encode{ static_cast<int>(*(du_ptr+zz[k])) };
+
+            if (value_to_encode==0)
+            {
+                if (k==63)
+                {
+                    // No more values to encode, encode EOB
+                    bs.extend(huff_table[end_of_block]);
+                }
+
+                r++;
+                continue;
+            }
+
+            // Note r could be much larger than 15 and might need to encode more 
+            // than one ZRL
+            while (r>15)
+            {
+                // Encode ZRL
+                bs.extend(huff_table[zrl]);
+                r -= 16;
+            }
+
+            // Now encode the current, non-zero coefficient
+            encode_AC_coeff(bs, value_to_encode, r, huff_table);
+
+            // Reset the run length of zeros
+            r = 0;
+        }
+    }
 }
