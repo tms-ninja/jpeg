@@ -1101,3 +1101,51 @@ TEST_CASE( "encode_AC_coeffs()::run of 32 zeros", "[encode_AC_coeffs()]" ) {
     REQUIRE( actual_result == expected_result );
 }
 
+TEST_CASE( "encode_data_unit_sequential()::encode sample data unit", "[encode_data_unit_sequential()]" ) {
+    Huff_Table huff_dc{ Huff_Table::load_DC_table(Image_Component::Luminance) };
+    Huff_Table huff_ac{ Huff_Table::load_AC_table(Image_Component::Luminance) };
+    size_t du_ind{ 0 };
+    int prev_dc{ 0 };
+
+    // Corresponds to the Wikipedia example using the Wikipedia quantization table
+    DU_Array<double> input_array{{
+        {-26.,  -3.,  -6.,   2.,   2.,  -1.,  -0.,   0.},
+        {  0.,  -2.,  -4.,   1.,   1.,  -0.,  -0.,   0.},
+        { -3.,   1.,   5.,  -1.,  -1.,   0.,   0.,  -0.},
+        { -3.,   1.,   2.,  -1.,  -0.,   0.,   0.,   0.},
+        {  1.,  -0.,  -0.,  -0.,  -0.,   0.,  -0.,   0.},
+        { -0.,   0.,   0.,  -0.,  -0.,   0.,   0.,   0.},
+        { -0.,   0.,   0.,  -0.,  -0.,  -0.,   0.,  -0.},
+        { -0.,   0.,  -0.,  -0.,  -0.,  -0.,   0.,   0.}
+    }};
+
+    Bit_String expected_result{
+        "11000101"  // -26, ssss=5
+        "0100"      // -3, rs = 0, 2
+        "1101100"   // -3, rs = 1, 2
+        "0101"      // -2  rs = 0, 2
+        "100001"    // -6  rs = 0, 3
+        "0110"      //  2  rs = 0, 2
+        "100011"    // -4  rs = 0, 3
+        "001"       //  1  rs = 0, 1
+        "0100"      // -3  rs = 0, 2
+        "001"       //  1  rs = 0, 1
+        "001"       //  1  rs = 0, 1
+        "100101"    //  5  rs = 0, 3
+        "001"       //  1  rs = 0, 1
+        "0110"      //  2  rs = 0, 2
+        "000"       // -1  rs = 0, 1
+        "001"       //  1  rs = 0, 1
+        "000"       // -1  rs = 0, 1
+        "0110"      //  2  rs = 0, 2
+        "11110100"  // -1  rs = 5, 1
+        "000"       // -1  rs = 0, 1
+        "1010"      // EOB
+    };
+
+    Bit_String actual_result{};
+
+    encode_data_unit_sequential(actual_result, input_array, du_ind, prev_dc, huff_dc, huff_ac);
+
+    REQUIRE( actual_result == expected_result );
+}

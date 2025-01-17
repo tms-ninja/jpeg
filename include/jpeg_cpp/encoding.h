@@ -68,6 +68,16 @@ namespace JPEG
     /// @param huff_table AC Huffman table
     void encode_AC_coeffs(Bit_String& bs, const DU_Array<double>& du_array, size_t du_ind,
                             const Huff_Table& huff_table);
+
+    /// @brief Encodes a data unit using the sequential mode
+    /// @param bs Bit_String to append encoded DC coefficient to
+    /// @param du_array DU_Array with the data unit to encode
+    /// @param du_ind Index of the data unit within the DU_Array
+    /// @param prev_dc DC coefficient of the previously encoded data unit
+    /// @param huff_table_dc DC Huffman table
+    /// @param huff_table_ac AC Huffman table
+    void encode_data_unit_sequential(Bit_String& bs, const DU_Array<double>& du_array, size_t du_ind, int prev_dc,
+                        const Huff_Table& huff_table_dc, const Huff_Table& huff_table_ac);
 }
 
 #endif

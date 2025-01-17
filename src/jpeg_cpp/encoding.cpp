@@ -247,4 +247,19 @@ namespace JPEG
             r = 0;
         }
     }
+
+    void encode_data_unit_sequential(Bit_String& bs, const DU_Array<double>& du_array, size_t du_ind, int prev_dc,
+                        const Huff_Table& huff_table_dc, const Huff_Table& huff_table_ac)
+    {
+        // First encode the DC coefficient
+        int dc_coeff{ static_cast<int>(du_array(du_ind, 0, 0)) };
+        // Its the difference between the DC coeff in this unit and the previous one that
+        // is encoded
+        int dc_diff{ dc_coeff-prev_dc };
+
+        encode_DC_coeff(bs, dc_diff, huff_table_dc);
+
+        // Now encode the AC coefficients
+        encode_AC_coeffs(bs, du_array, du_ind, huff_table_ac);
+    }
 }
