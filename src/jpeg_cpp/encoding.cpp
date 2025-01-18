@@ -193,15 +193,8 @@ namespace JPEG
                             const Huff_Table& huff_table)
     {
         // Offsets for the zig-zag pattern
-        const std::array<size_t, 64> zz{ 
-            0, 1, 8, 16, 9, 2, 3, 10, 17, 24, 32, 
-            25, 18, 11, 4, 5, 12, 19, 26, 33, 40, 
-            48, 41, 34, 27, 20, 13, 6, 7, 14, 21, 
-            28, 35, 42, 49, 56, 57, 50, 43, 36, 
-            29, 22, 15, 23, 30, 37, 44, 51, 58, 
-            59, 52, 45, 38, 31, 39, 46, 53, 60, 
-            61, 54, 47, 55, 62, 63
-         };
+        const auto& zz{ zig_zag_order };
+
         // Pointer to the start of the data unit we are encoding
         const double* du_ptr{ du_array.data() + du_ind*64 };
         size_t end_of_block{ 0x00 };  // EOB RRRRSSSS code
@@ -261,5 +254,45 @@ namespace JPEG
 
         // Now encode the AC coefficients
         encode_AC_coeffs(bs, du_array, du_ind, huff_table_ac);
+    }
+
+    void append_q_table_marker_segment(std::vector<unsigned char>& out, const std::vector<Q_Table>& q_tables, std::vector<unsigned int>& destination_indices)
+    {
+        assert("Number of quantization tables and destination indices must be the same" && q_tables.size()==destination_indices.size());
+
+        // Append quantization table marker, 0xFFDB, most significant byte first
+        out.push_back(0xFF);
+        out.push_back(0xDB);
+
+        // Now determine the length of the marker segment
+        size_t length{ 2 + 65 * q_tables.size() };
+
+        out.push_back(length >> 8);
+        out.push_back(0xFF & length);
+
+        // Now append each table in turn
+        for (size_t table_ind = 0; table_ind < q_tables.size(); table_ind++)
+        {
+            const Q_Table& table{ q_tables[table_ind] };
+
+            // Table precision, 0 for 8 bit images
+            unsigned int Pq{ 0 };
+
+            // Table destination identifier
+            unsigned int Tq{ destination_indices[table_ind] };
+            assert("Tq cannot be greater than 3" && Tq<=3);
+
+            // Pq & Tq form one byte, Pq most significant
+            out.push_back((Pq << 4) + Tq);
+
+            // Now need to append the value of the quantization table in zig-zag order
+            const auto& zz{ zig_zag_order };
+
+            for (size_t ind = 0; ind < table.size(); ind++)
+            {   
+                assert("Quantization table values must be less than 256" && table[zz[ind]]);
+                out.push_back(table[zz[ind]]);
+            }
+        }
     }
 }

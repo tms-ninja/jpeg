@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <array>
@@ -1148,4 +1149,248 @@ TEST_CASE( "encode_data_unit_sequential()::encode sample data unit", "[encode_da
     encode_data_unit_sequential(actual_result, input_array, du_ind, prev_dc, huff_dc, huff_ac);
 
     REQUIRE( actual_result == expected_result );
+}
+
+TEST_CASE( "append_q_table_marker_segment()::single quantization table", "[append_q_table_marker_segment()]" ) {
+    std::vector<Q_Table> q_tables{ gen_wiki_q_table() };
+    std::vector<unsigned int> destination_indices{ 0 };
+
+    std::vector<unsigned char> expected_result = {
+        0xFF,   // DQT segment marker
+        0xDB,
+        0x00,   // Length of marker segment (2 bytes for length, 1 for table type/destination
+        67,     // and 64 for the table's elements)
+        0x00,   //  Pq/Tq byte, 8 bit precision & destination identifier
+        16,     // Quantization table elements in zig-zag order
+        11,
+        12,
+        14,
+        12,
+        10,
+        16,
+        14,
+        13,
+        14,
+        18,
+        17,
+        16,
+        19,
+        24,
+        40,
+        26,
+        24,
+        22,
+        22,
+        24,
+        49,
+        35,
+        37,
+        29,
+        40,
+        58,
+        51,
+        61,
+        60,
+        57,
+        51,
+        56,
+        55,
+        64,
+        72,
+        92,
+        78,
+        64,
+        68,
+        87,
+        69,
+        55,
+        56,
+        80,
+        109,
+        81,
+        87,
+        95,
+        98,
+        103,
+        104,
+        103,
+        62,
+        77,
+        113,
+        121,
+        112,
+        100,
+        120,
+        92,
+        101,
+        103,
+        99
+    };
+
+    std::vector<unsigned char> actual_result{};
+    append_q_table_marker_segment(actual_result, q_tables, destination_indices);
+
+    REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
+}
+
+TEST_CASE( "append_q_table_marker_segment()::two quantization table", "[append_q_table_marker_segment()]" ) {
+    Q_Table wiki_q_table{ gen_wiki_q_table() };
+    std::vector<Q_Table> q_tables(2);
+
+    // Create a vector of q tables where the first is the wiki table, the second is
+    // is derived from the wiki table with +1 added elementwise
+    for (size_t table_ind = 0; table_ind < q_tables.size(); table_ind++)
+    {
+        for (size_t i = 0; i < q_tables[table_ind].shape()[1]; i++)
+        {
+            for (size_t j = 0; j < q_tables[table_ind].shape()[1]; j++)
+            {
+                q_tables[table_ind](i, j) = wiki_q_table(i, j) + table_ind;
+            }
+        }
+    }
+    
+    std::vector<unsigned int> destination_indices{ 0, 1 };
+
+    std::vector<unsigned char> expected_result = {
+        0xFF,   // DQT segment marker
+        0xDB,
+        0x00,   // Length of marker segment (2 bytes for length, 2 for table type/destination
+        132,     // and 128 for the table's elements)
+        0x00,   // Pq/Tq byte, 8 bit precision & destination identifier
+        16,     // Quantization table elements in zig-zag order
+        11,
+        12,
+        14,
+        12,
+        10,
+        16,
+        14,
+        13,
+        14,
+        18,
+        17,
+        16,
+        19,
+        24,
+        40,
+        26,
+        24,
+        22,
+        22,
+        24,
+        49,
+        35,
+        37,
+        29,
+        40,
+        58,
+        51,
+        61,
+        60,
+        57,
+        51,
+        56,
+        55,
+        64,
+        72,
+        92,
+        78,
+        64,
+        68,
+        87,
+        69,
+        55,
+        56,
+        80,
+        109,
+        81,
+        87,
+        95,
+        98,
+        103,
+        104,
+        103,
+        62,
+        77,
+        113,
+        121,
+        112,
+        100,
+        120,
+        92,
+        101,
+        103,
+        99,     // Last element of first q table
+        0x01,   // Pq/Tq byte, 8 bit precision & destination identifier
+        17,     // Quantization table elements in zig-zag order
+        12,
+        13,
+        15,
+        13,
+        11,
+        17,
+        15,
+        14,
+        15,
+        19,
+        18,
+        17,
+        20,
+        25,
+        41,
+        27,
+        25,
+        23,
+        23,
+        25,
+        50,
+        36,
+        38,
+        30,
+        41,
+        59,
+        52,
+        62,
+        61,
+        58,
+        52,
+        57,
+        56,
+        65,
+        73,
+        93,
+        79,
+        65,
+        69,
+        88,
+        70,
+        56,
+        57,
+        81,
+        110,
+        82,
+        88,
+        96,
+        99,
+        104,
+        105,
+        104,
+        63,
+        78,
+        114,
+        122,
+        113,
+        101,
+        121,
+        93,
+        102,
+        104,
+        100
+    };
+
+    std::vector<unsigned char> actual_result{};
+    append_q_table_marker_segment(actual_result, q_tables, destination_indices);
+
+    REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
 }
