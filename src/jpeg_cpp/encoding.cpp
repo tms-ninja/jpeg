@@ -295,4 +295,92 @@ namespace JPEG
             }
         }
     }
+
+    void append_BITS_array(std::vector<unsigned char>& out, Huff_Table& huff_table)
+    {
+        std::array<unsigned char, 16> BITS{};
+
+        for (size_t ind = 0; ind < huff_table.size(); ind++)
+        {
+            const Bit_String& bs{ huff_table[ind] };
+
+            assert("Bit_String length must be less than 17" && bs.size()<17);
+
+            if (bs.size()>0)
+            {
+                BITS[bs.size()-1]++;
+            }
+        }
+        
+        for (auto b : BITS)
+        {
+            out.push_back(b);
+        }
+    }
+
+    void append_HUFFVAL_array(std::vector<unsigned char>& out, Huff_Table& huff_table)
+    {
+        assert("huffman table should not have symbols above 255" && huff_table.size()<255);
+
+        // Can assume Huffman table is cannonical
+        // Means for a given code size symbols appear with increasing codes,
+        // for any i<j, table[i]<table[j]
+        // So just need to apply the symbols in the order they appear, one code
+        // size at a time
+        const unsigned char min_code_size{ 1 };
+        const unsigned char max_code_size{ 16 };
+
+        for (size_t code_size=min_code_size; code_size<=max_code_size; code_size++)
+        {
+            for (size_t bs_ind = 0; bs_ind < huff_table.size(); bs_ind++)
+            {
+                const auto& bs{ huff_table[bs_ind] };
+
+                if (bs.size()==code_size)
+                {
+                    // The symbol corresponds to index of the Huffman table
+                    out.push_back(bs_ind);
+                }
+            }
+        }
+    }
+
+    void append_huff_table_data(std::vector<unsigned char>& out, Huff_Table_Ref& huff_table)
+    {
+        // first append the table class and destination, table class is most significant
+        // table_class should be 0 for DC, 1 for AC
+        unsigned int table_class{ huff_table.type==Huff_Table_Ref::Huff_Table_Type::AC };
+
+        out.push_back((table_class << 4) + huff_table.destination_ind);
+
+        // Append the BITS list
+        append_BITS_array(out, huff_table.table);
+
+        // Finaly append the HUFFVAL list
+        append_HUFFVAL_array(out, huff_table.table);
+    }
+
+    void append_huff_table_marker_segment(std::vector<unsigned char>& out, std::vector<Huff_Table_Ref> tables)
+    {
+        // Append the DHT marker
+        out.push_back(0xFF);
+        out.push_back(0xC4);
+
+        // Next comes the length of the table segment but we don't know that yet
+        // So record the index of where the length should go and push two bytes
+        const size_t length_ind{ out.size() };
+        out.resize(out.size() + 2);
+
+        // Now add each table in turn
+        for (auto& table : tables)
+        {
+            append_huff_table_data(out, table);
+        }
+        
+        // Finally go back and fill in the length, most significant byte first
+        size_t bytes_appended{ out.size()-length_ind };
+
+        out[length_ind] = bytes_appended >> 8;
+        out[length_ind+1] = bytes_appended & 0xFF;
+    }
 }

@@ -1394,3 +1394,135 @@ TEST_CASE( "append_q_table_marker_segment()::two quantization table", "[append_q
 
     REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
 }
+
+TEST_CASE( "append_huff_table_marker_segment()::one Huffman table", "[append_huff_table_marker_segment()]" ) {
+    Huff_Table luminance_table{ Huff_Table::load_DC_table(Image_Component::Luminance) };
+    std::vector<Huff_Table_Ref> huff_tables{
+        {luminance_table, Huff_Table_Ref::Huff_Table_Type::DC, 0}
+    };
+
+    std::vector<unsigned char> expected_result{
+        0xFF,   // DHT marker, FFC4
+        0xC4,
+        0,      // Length, 2 bytes, most significant first
+        31,
+        0x00,   // Table class (0) and destination (0)
+        0,      // Start of BITS array
+        1,
+        5,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,      // End of BITS array
+        0,      // Start of HUFFVAL array
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11      // End of HUFFVAL array 
+    };
+
+    std::vector<unsigned char> actual_result;
+
+    append_huff_table_marker_segment(actual_result, huff_tables);
+
+    REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
+}
+
+TEST_CASE( "append_huff_table_marker_segment()::two Huffman tables", "[append_huff_table_marker_segment()]" ) {
+    Huff_Table luminance_table{ Huff_Table::load_DC_table(Image_Component::Luminance) };
+    Huff_Table chromiance_table{ Huff_Table::load_DC_table(Image_Component::Chrominance) };
+    std::vector<Huff_Table_Ref> huff_tables{
+        {luminance_table, Huff_Table_Ref::Huff_Table_Type::DC, 0},
+        // We'll pretend the DC chromiance table is AC to make the test shorter
+        {chromiance_table, Huff_Table_Ref::Huff_Table_Type::AC, 1},
+    };
+
+    std::vector<unsigned char> expected_result{
+        0xFF,   // DHT marker, FFC4
+        0xC4,
+        0,      // Length, 2 bytes, most significant first
+        60,
+        // Start of first table data
+        0x00,   // Table class (0) and destination (0)
+        0,      // Start of BITS array
+        1,
+        5,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,      // End of BITS array
+        0,      // Start of HUFFVAL array
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,     // End of HUFFVAL array
+        // Start of second table data
+        0x11,   // Table class (0) and destination (0)
+        0,      // Start of BITS array
+        3,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,      // End of BITS array
+        0,      // Start of HUFFVAL array
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,     // End of HUFFVAL array
+    };
+
+    std::vector<unsigned char> actual_result;
+
+    append_huff_table_marker_segment(actual_result, huff_tables);
+
+    REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
+}
