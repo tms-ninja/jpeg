@@ -241,7 +241,7 @@ namespace JPEG
         }
     }
 
-    void encode_data_unit_sequential(Bit_String& bs, const DU_Array<double>& du_array, size_t du_ind, int prev_dc,
+    int encode_data_unit_sequential(Bit_String& bs, const DU_Array<double>& du_array, size_t du_ind, int prev_dc,
                         const Huff_Table& huff_table_dc, const Huff_Table& huff_table_ac)
     {
         // First encode the DC coefficient
@@ -254,6 +254,8 @@ namespace JPEG
 
         // Now encode the AC coefficients
         encode_AC_coeffs(bs, du_array, du_ind, huff_table_ac);
+
+        return dc_coeff;
     }
 
     void append_q_table_marker_segment(std::vector<unsigned char>& out, const std::vector<Q_Table>& q_tables, std::vector<unsigned int>& destination_indices)
@@ -292,6 +294,35 @@ namespace JPEG
             {   
                 assert("Quantization table values must be less than 256" && table[zz[ind]]);
                 out.push_back(table[zz[ind]]);
+            }
+        }
+    }
+
+    void append_mcu(Bit_String& bs, std::vector<int>& prev_dc, std::vector<size_t>& du_ind, const std::vector<DU_Array<double>>& arrays, 
+        const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables)
+    {
+        // Iterate over each component adding however many data units we need from it
+        for (size_t comp_ind = 0; comp_ind < arrays.size(); comp_ind++)
+        {
+            const DU_Array<double>& data_units{ arrays[comp_ind] };
+
+            size_t data_units_to_encode{ comp_infos[comp_ind].H*comp_infos[comp_ind].V };
+
+            for (size_t ind = 0; ind < data_units_to_encode; ind++)
+            {
+                // encode the current data unit and update the current
+                // DC coeff for the current component
+                prev_dc[comp_ind] = encode_data_unit_sequential(
+                    bs, 
+                    data_units, 
+                    du_ind[comp_ind],
+                    prev_dc[comp_ind],
+                    dc_tables[comp_infos[comp_ind].DC_Huff_table_ind],
+                    ac_tables[comp_infos[comp_ind].AC_Huff_table_ind]
+                );
+
+                // Move on to next data unit
+                du_ind[comp_ind]++;
             }
         }
     }

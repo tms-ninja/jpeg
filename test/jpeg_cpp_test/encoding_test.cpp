@@ -1526,3 +1526,248 @@ TEST_CASE( "append_huff_table_marker_segment()::two Huffman tables", "[append_hu
 
     REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
 }
+
+TEST_CASE( "append_mcu()::single component", "[append_mcu()]" ) {
+    std::vector<int> prev_dc{ 0 };
+    std::vector<size_t> du_ind{ 0 };
+    std::vector<Comp_Info> comp_info{
+        Comp_Info(
+            0,  // Q table ind
+            0,  // DC Huffman ind
+            0,  // AC Huffman ind
+            1,  // H sampling factor
+            1   // V sampling factor
+        )
+    };
+    std::vector<Huff_Table> huff_dc{ Huff_Table::load_DC_table(Image_Component::Luminance) };
+    std::vector<Huff_Table> huff_ac{ Huff_Table::load_AC_table(Image_Component::Luminance) };
+
+    // Corresponds to the Wikipedia example using the Wikipedia quantization table
+    std::vector<DU_Array<double>> input_array{{
+        {
+            {-26.,  -3.,  -6.,   2.,   2.,  -1.,  -0.,   0.},
+            {  0.,  -2.,  -4.,   1.,   1.,  -0.,  -0.,   0.},
+            { -3.,   1.,   5.,  -1.,  -1.,   0.,   0.,  -0.},
+            { -3.,   1.,   2.,  -1.,  -0.,   0.,   0.,   0.},
+            {  1.,  -0.,  -0.,  -0.,  -0.,   0.,  -0.,   0.},
+            { -0.,   0.,   0.,  -0.,  -0.,   0.,   0.,   0.},
+            { -0.,   0.,   0.,  -0.,  -0.,  -0.,   0.,  -0.},
+            { -0.,   0.,  -0.,  -0.,  -0.,  -0.,   0.,   0.}
+        },
+        {
+            {-26.,  -3.,  -6.,   2.,   2.,  -1.,  -0.,   0.},
+            {  0.,  -2.,  -4.,   1.,   1.,  -0.,  -0.,   0.},
+            { -3.,   1.,   5.,  -1.,  -1.,   0.,   0.,  -0.},
+            { -3.,   1.,   2.,  -1.,  -0.,   0.,   0.,   0.},
+            {  1.,  -0.,  -0.,  -0.,  -0.,   0.,  -0.,   0.},
+            { -0.,   0.,   0.,  -0.,  -0.,   0.,   0.,   0.},
+            { -0.,   0.,   0.,  -0.,  -0.,  -0.,   0.,  -0.},
+            { -0.,   0.,  -0.,  -0.,  -0.,  -0.,   0.,   0.}
+        }
+
+    }};
+
+    Bit_String expected_result{
+        // First data unit
+        "11000101"  // -26, ssss=5
+        "0100"      // -3, rs = 0, 2
+        "1101100"   // -3, rs = 1, 2
+        "0101"      // -2  rs = 0, 2
+        "100001"    // -6  rs = 0, 3
+        "0110"      //  2  rs = 0, 2
+        "100011"    // -4  rs = 0, 3
+        "001"       //  1  rs = 0, 1
+        "0100"      // -3  rs = 0, 2
+        "001"       //  1  rs = 0, 1
+        "001"       //  1  rs = 0, 1
+        "100101"    //  5  rs = 0, 3
+        "001"       //  1  rs = 0, 1
+        "0110"      //  2  rs = 0, 2
+        "000"       // -1  rs = 0, 1
+        "001"       //  1  rs = 0, 1
+        "000"       // -1  rs = 0, 1
+        "0110"      //  2  rs = 0, 2
+        "11110100"  // -1  rs = 5, 1
+        "000"       // -1  rs = 0, 1
+        "1010"      // EOB
+        // Second data unit
+        // Remember the DC elements of both data units are the same and its
+        // the difference that is encoded. I.e. 0
+        "00"        // 0, ssss=5
+        "0100"      // -3, rs = 0, 2
+        "1101100"   // -3, rs = 1, 2
+        "0101"      // -2  rs = 0, 2
+        "100001"    // -6  rs = 0, 3
+        "0110"      //  2  rs = 0, 2
+        "100011"    // -4  rs = 0, 3
+        "001"       //  1  rs = 0, 1
+        "0100"      // -3  rs = 0, 2
+        "001"       //  1  rs = 0, 1
+        "001"       //  1  rs = 0, 1
+        "100101"    //  5  rs = 0, 3
+        "001"       //  1  rs = 0, 1
+        "0110"      //  2  rs = 0, 2
+        "000"       // -1  rs = 0, 1
+        "001"       //  1  rs = 0, 1
+        "000"       // -1  rs = 0, 1
+        "0110"      //  2  rs = 0, 2
+        "11110100"  // -1  rs = 5, 1
+        "000"       // -1  rs = 0, 1
+        "1010"      // EOB
+    };
+
+    Bit_String actual_result{};
+    size_t mcu_count{ 2 };
+
+    for (size_t mcu_ind = 0; mcu_ind < mcu_count; mcu_ind++)
+    {
+        append_mcu(actual_result, prev_dc, du_ind, input_array, comp_info, huff_dc, huff_ac);
+    }
+
+    REQUIRE( actual_result == expected_result );
+}
+
+TEST_CASE( "append_mcu()::multiple components", "[append_mcu()]" ) {
+    std::vector<int> prev_dc{ 0, 0, 0 };
+    std::vector<size_t> du_ind{ 0, 0, 0 };
+    std::vector<Comp_Info> comp_info{
+        Comp_Info(
+            0,  // Q table ind
+            0,  // DC Huffman ind
+            0,  // AC Huffman ind
+            2,  // H sampling factor
+            2   // V sampling factor
+        ),
+        Comp_Info(
+            0,  // Q table ind
+            1,  // DC Huffman ind
+            1,  // AC Huffman ind
+            1,  // H sampling factor
+            1   // V sampling factor
+        ),
+        Comp_Info(
+            0,  // Q table ind
+            1,  // DC Huffman ind
+            1,  // AC Huffman ind
+            1,  // H sampling factor
+            1   // V sampling factor
+        )
+    };
+    std::vector<Huff_Table> huff_dc{ 
+        Huff_Table::load_DC_table(Image_Component::Luminance),
+        Huff_Table::load_DC_table(Image_Component::Chrominance)
+    };
+    std::vector<Huff_Table> huff_ac{ 
+        Huff_Table::load_AC_table(Image_Component::Luminance),
+        Huff_Table::load_AC_table(Image_Component::Chrominance)
+    };
+
+    // Corresponds to the Wikipedia example using the Wikipedia quantization table
+    std::vector<DU_Array<double>> input_array{
+        {
+            // First component has 4 data units
+            {
+                { 1, 2, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+            },
+            {
+                { 3, 4, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+            },
+            {
+                { 5, 6, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+            },
+            {
+                { 7, 8, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+            }
+        },
+        // Next 2 components only have 1 data unit each
+        {
+            {
+                { 9, 10, 0, 0, 0, 0, 0, 0 },
+                { 0,  0, 0, 0, 0, 0, 0, 0 },
+                { 0,  0, 0, 0, 0, 0, 0, 0 },
+                { 0,  0, 0, 0, 0, 0, 0, 0 },
+                { 0,  0, 0, 0, 0, 0, 0, 0 },
+                { 0,  0, 0, 0, 0, 0, 0, 0 },
+                { 0,  0, 0, 0, 0, 0, 0, 0 },
+                { 0,  0, 0, 0, 0, 0, 0, 0 },
+            }
+        },
+        {
+            {
+                { 11, 12, 0, 0, 0, 0, 0, 0 },
+                {  0,  0, 0, 0, 0, 0, 0, 0 },
+                {  0,  0, 0, 0, 0, 0, 0, 0 },
+                {  0,  0, 0, 0, 0, 0, 0, 0 },
+                {  0,  0, 0, 0, 0, 0, 0, 0 },
+                {  0,  0, 0, 0, 0, 0, 0, 0 },
+                {  0,  0, 0, 0, 0, 0, 0, 0 },
+                {  0,  0, 0, 0, 0, 0, 0, 0 },
+            }
+        }
+    };
+
+    Bit_String expected_result{
+        // First component
+        // First data unit
+        "0101"      // 1, ssss=1
+        "0110"      // 2, rs = 0, 2
+        "1010"      // EOB
+        // Second data unit
+        "01110"     // 2, ssss=2  (note diff=2)
+        "100100"    // 4, rs = 0, 3
+        "1010"      // EOB
+        // Third data unit
+        "01110"     // 2, ssss=3
+        "100110"    // 6, rs = 0, 3
+        "1010"      // EOB
+        // Fourth data unit
+        "01110"     // 2, ssss=3
+        "10111000"  // 8, rs = 0, 4
+        "1010"      // EOB
+
+        // Second component
+        "11101001"  // 9, ssss=4
+        "110001010" // 10, rs = 0, 4
+        "00"      // EOB
+
+        // Third component
+        "11101011"  // 11, ssss=4
+        "110001100" // 12, rs = 0, 4
+        "00"      // EOB
+    };
+
+    Bit_String actual_result{};
+
+    // Append the MCU
+    append_mcu(actual_result, prev_dc, du_ind, input_array, comp_info, huff_dc, huff_ac);
+
+    REQUIRE( actual_result == expected_result );
+}
