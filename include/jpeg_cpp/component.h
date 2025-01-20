@@ -5,12 +5,9 @@
 
 namespace JPEG
 {   
-    /// @brief Represents an image component.
-    struct Component
+    /// @brief Represents encoding metadata about an image component.
+    struct Comp_Info
     {
-        /// @brief Image component data
-        Array_2d<double> array;
-
         /// @brief Index of the Quantization table for this component
         size_t q_table_ind;
 
@@ -26,14 +23,14 @@ namespace JPEG
         /// @brief Vertical sampling factor
         unsigned int V;
 
-        /// @brief Constructs a Component
+        /// @brief Constructs a Comp_Info
         /// @param array Array containing component data
         /// @param q_table_ind Index of the Quantization table
         /// @param DC_Huff_table_ind Index of the DC Huffman table
         /// @param AC_Huff_table_ind Index of the AC Huffman table
         /// @param H Horizontal sampling factor
         /// @param V Vertical sampling factor
-        Component(Array_2d<double> array, size_t q_table_ind, size_t DC_Huff_table_ind, size_t AC_Huff_table_ind,
+        Comp_Info(size_t q_table_ind, size_t DC_Huff_table_ind, size_t AC_Huff_table_ind,
                     unsigned int H, unsigned int V);
     };
     
