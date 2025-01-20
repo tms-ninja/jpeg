@@ -160,6 +160,11 @@ namespace JPEG
     /// @param out Output to append encoded Huffman table data to
     /// @param tables Tables to encode
     void append_huff_table_marker_segment(std::vector<unsigned char>& out, std::vector<Huff_Table_Ref> tables);
+
+    /// @brief Appends a scan header to the output.
+    /// @param out Output to append scan header to
+    /// @param comp_infos List of components in the scan
+    void append_scan_header(std::vector<unsigned char>& out, const std::vector<Comp_Info>& comp_infos);
 }
 
 #endif

@@ -1771,3 +1771,69 @@ TEST_CASE( "append_mcu()::multiple components", "[append_mcu()]" ) {
 
     REQUIRE( actual_result == expected_result );
 }
+
+TEST_CASE( "append_scan_header()::single component", "[append_scan_header()]" ) {
+
+    std::vector<Comp_Info> comp_infos{
+        Comp_Info{0, 0, 0, 1, 1}
+    };
+
+    std::vector<unsigned char> expected_result{
+        0xFF,   // DHT marker, FFC4
+        0xDA,
+        0,      // Length, 2 bytes, most significant first
+        8,
+        1,      // Number of components in scan
+        // First component
+        0,      // Component identifier
+        0x00,   // Composite byte of DC table destination (most significant) and AC table destination
+        // End of component data
+        0,      // Start of spectral or predictor selection (0 for sequential DCT)
+        63,     // End of spectral selection (63 for sequential DCT)
+        0x00    // Composite byte of successive approximation bit position high/low,
+                // 0 in both cases
+    };
+
+    std::vector<unsigned char> actual_result;
+
+    append_scan_header(actual_result, comp_infos);
+
+    REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
+}
+
+TEST_CASE( "append_scan_header()::multiple components", "[append_scan_header()]" ) {
+
+    std::vector<Comp_Info> comp_infos{
+        Comp_Info{0, 0, 0, 2, 1},
+        Comp_Info{0, 1, 1, 1, 1},
+        Comp_Info{0, 1, 1, 1, 1}
+    };
+
+    std::vector<unsigned char> expected_result{
+        0xFF,   // DHT marker, FFC4
+        0xDA,
+        0,      // Length, 2 bytes, most significant first
+        12,
+        3,      // Number of components in scan
+        // First component
+        0,      // Component identifier
+        0x00,   // Composite byte of DC table destination (most significant) and AC table destination
+        // Second component
+        1,      // Component identifier
+        0x11,   // Composite byte of DC table destination (most significant) and AC table destination
+        // Third component
+        2,      // Component identifier
+        0x11,   // Composite byte of DC table destination (most significant) and AC table destination
+        // End of component data
+        0,      // Start of spectral or predictor selection (0 for sequential DCT)
+        63,     // End of spectral selection (63 for sequential DCT)
+        0x00    // Composite byte of successive approximation bit position high/low,
+                // 0 in both cases
+    };
+
+    std::vector<unsigned char> actual_result;
+
+    append_scan_header(actual_result, comp_infos);
+
+    REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
+}

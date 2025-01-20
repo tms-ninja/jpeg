@@ -414,4 +414,45 @@ namespace JPEG
         out[length_ind] = bytes_appended >> 8;
         out[length_ind+1] = bytes_appended & 0xFF;
     }
+
+    void append_scan_header(std::vector<unsigned char>& out, const std::vector<Comp_Info>& comp_infos)
+    {
+        // Append Start Of Scan marker
+        out.push_back(0xFF);
+        out.push_back(0xDA);
+
+        // Determine length
+        unsigned int scan_header_length{ 6 + 2 * static_cast<unsigned int>(comp_infos.size()) };
+        out.push_back(scan_header_length >> 8);
+        out.push_back(scan_header_length & 0xFF);
+
+        // Add number of components in the scan
+        out.push_back(comp_infos.size());
+
+        // Add component specific data
+        for (size_t comp_ind = 0; comp_ind < comp_infos.size(); comp_ind++)
+        {
+            // Index of component in scan
+            out.push_back(comp_ind);
+
+            // Composite byte of DC and AC table destinations
+            // DC index is most significant
+            size_t dc_destination{ comp_infos[comp_ind].DC_Huff_table_ind };
+            size_t ac_destination{ comp_infos[comp_ind].AC_Huff_table_ind };
+            out.push_back((dc_destination << 4) + ac_destination);
+        }
+
+        // Start of spectral or predictor selection
+        // Set to zero for sequential DCT
+        out.push_back(0);
+
+        // End of spectral selection
+        // Set to 63 for sequential DCT
+        out.push_back(63);
+        
+        // Composite byte of successive approximation bit position high & low
+        // Both high and low are set to zero in sequential DCT
+        out.push_back(0x00);
+    }
 }
+
