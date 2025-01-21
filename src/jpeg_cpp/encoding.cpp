@@ -454,5 +454,46 @@ namespace JPEG
         // Both high and low are set to zero in sequential DCT
         out.push_back(0x00);
     }
+
+    void append_frame_header(std::vector<unsigned char>& out, unsigned int Y, unsigned int X, 
+        const std::vector<Comp_Info>& comp_infos)
+    {
+        // Append Start Of Frame 0 marker, corresponds to baseline DCT
+        out.push_back(0xFF);
+        out.push_back(0xC0);
+
+        // Length of frame header
+        unsigned int frame_header_length{ 8 + 3 * static_cast<unsigned int>(comp_infos.size()) };
+        out.push_back(frame_header_length >> 8);
+        out.push_back(frame_header_length & 0xFF);
+
+        // Sample precision in bits, 1 byte
+        out.push_back(8);
+
+        // Height and width of image, 2 bytes each
+        out.push_back(Y >> 8);
+        out.push_back(Y & 0xFF);
+
+        out.push_back(X >> 8);
+        out.push_back(X & 0xFF);
+
+        // Number of components in frame, 1 byte
+        out.push_back(comp_infos.size());
+
+        // Component specific stuff
+        for (size_t comp_ind = 0; comp_ind < comp_infos.size(); comp_ind++)
+        {
+            // Component identifier, 1 byte
+            out.push_back(comp_ind);
+
+            // Composite byte containing H sampling factor (most significant) and V sampling
+            // factor (least significant)
+            unsigned int H{ comp_infos[comp_ind].H }, V{ comp_infos[comp_ind].V };
+            out.push_back((H << 4) + V);
+
+            // Quantization table destination index, 1 byte
+            out.push_back(comp_infos[comp_ind].q_table_ind); 
+        }
+    }
 }
 

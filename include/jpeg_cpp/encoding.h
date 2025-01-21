@@ -165,6 +165,14 @@ namespace JPEG
     /// @param out Output to append scan header to
     /// @param comp_infos List of components in the scan
     void append_scan_header(std::vector<unsigned char>& out, const std::vector<Comp_Info>& comp_infos);
+
+    /// @brief Appends a frame header to the output.
+    /// @param out Output to append frame header to
+    /// @param Y Height of image
+    /// @param X Width of image
+    /// @param comp_infos List of components in the frame
+    void append_frame_header(std::vector<unsigned char>& out, unsigned int Y, unsigned int X, 
+        const std::vector<Comp_Info>& comp_infos);
 }
 
 #endif

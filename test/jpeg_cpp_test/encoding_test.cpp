@@ -1837,3 +1837,77 @@ TEST_CASE( "append_scan_header()::multiple components", "[append_scan_header()]"
 
     REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
 }
+
+TEST_CASE( "append_frame_header()::single component", "[append_frame_header()]" ) {
+    std::vector<Comp_Info> comp_infos{
+        Comp_Info{0, 0, 0, 2, 1},
+    };
+    unsigned int image_height{ 500 };
+    unsigned int image_width{ 1000 };
+
+    std::vector<unsigned char> expected_result{
+        0xFF,   // SOF marker, FFC0 for baseline DCT
+        0xC0,
+        0,      // Length, 2 bytes, most significant first
+        11,
+        8,      // Precision in bits
+        0x01,   // Image height, most significant byte first
+        0xF4,
+        0x03,   // Image width, most significant byte first
+        0xE8,
+        1,      // Number of components in frame
+        // Start of component specific data
+        // First component
+        0,      // Component identifier
+        0x21,   // Composite byte of horizontal sampling factor (most significant) and vertical sampling factor
+        0,      // Quantization table destination
+    };
+
+    std::vector<unsigned char> actual_result;
+
+    append_frame_header(actual_result, image_height, image_width, comp_infos);
+
+    REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
+}
+
+TEST_CASE( "append_frame_header()::multiple components", "[append_frame_header()]" ) {
+    std::vector<Comp_Info> comp_infos{
+        Comp_Info{0, 0, 0, 2, 1},
+        Comp_Info{1, 1, 1, 1, 2},
+        Comp_Info{1, 1, 1, 1, 2},
+    };
+    unsigned int image_height{ 500 };
+    unsigned int image_width{ 1000 };
+
+    std::vector<unsigned char> expected_result{
+        0xFF,   // SOF marker, FFC0 for baseline DCT
+        0xC0,
+        0,      // Length, 2 bytes, most significant first
+        17,
+        8,      // Precision in bits
+        0x01,   // Image height, most significant byte first
+        0xF4,
+        0x03,   // Image width, most significant byte first
+        0xE8,
+        3,      // Number of components in frame
+        // Start of component specific data
+        // First component
+        0,      // Component identifier
+        0x21,   // Composite byte of horizontal sampling factor (most significant) and vertical sampling factor
+        0,      // Quantization table destination
+        // Second component
+        1,      // Component identifier
+        0x12,   // Composite byte of horizontal sampling factor (most significant) and vertical sampling factor
+        1,      // Quantization table destination
+        // Second component
+        2,      // Component identifier
+        0x12,   // Composite byte of horizontal sampling factor (most significant) and vertical sampling factor
+        1,      // Quantization table destination
+    };
+
+    std::vector<unsigned char> actual_result;
+
+    append_frame_header(actual_result, image_height, image_width, comp_infos);
+
+    REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
+}
