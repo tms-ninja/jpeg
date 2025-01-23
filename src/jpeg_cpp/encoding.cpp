@@ -495,5 +495,43 @@ namespace JPEG
             out.push_back(comp_infos[comp_ind].q_table_ind); 
         }
     }
+
+    void encode_scan(std::vector<unsigned char>& out, std::vector<DU_Array<double>>& arrays, 
+        const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
+        const std::vector<Q_Table>& q_tables)
+    {
+        // Append scan header
+        append_scan_header(out, comp_infos);
+        
+        // Entropy encode each MCU in turn
+        // Note previous DC should be initialized to 0
+        Bit_String bs;
+        std::vector<int> prev_dc(arrays.size());
+        std::vector<size_t> du_ind(arrays.size());
+
+        while (du_ind[0]<arrays[0].size())
+        {
+            append_mcu(bs, prev_dc, du_ind, arrays, comp_infos, dc_tables, ac_tables);
+        }
+
+        // Now need to add padding if necessary and then perform byte stuffing
+        while (bs.size() % 8 != 0)
+        {
+            bs.append_bit(1);
+        }
+
+        const auto end{ bs.data() + bs.size() };
+
+        for (auto c_ptr=bs.data(); c_ptr!=end; ++c_ptr)
+        {
+            out.push_back(*c_ptr);
+
+            // If a 0xFF byte occurs, we must append a 0x00 byte after it
+            if (*c_ptr==0xFF)
+            {
+                out.push_back(0x00);
+            }
+        }
+    }
 }
 

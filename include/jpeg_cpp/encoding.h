@@ -173,6 +173,18 @@ namespace JPEG
     /// @param comp_infos List of components in the frame
     void append_frame_header(std::vector<unsigned char>& out, unsigned int Y, unsigned int X, 
         const std::vector<Comp_Info>& comp_infos);
+
+    /// @brief Encodes a scan. Note does not perform level shift/DCT/quantization
+    /// @param out Output to append scan to
+    /// @param arrays Arrays comtaining the data units for each component. level shift/DCT/quantization should have already
+    /// been performed
+    /// @param comp_infos List of components in the scan
+    /// @param dc_tables List of DC tables. Note which table is used for each component is taken from comp_infos
+    /// @param ac_tables List of AC tables. Note which table is used for each component is taken from comp_infos
+    /// @param q_tables List of quantization tables. Note which table is used for each component is taken from comp_infos
+    void encode_scan(std::vector<unsigned char>& out, std::vector<DU_Array<double>>& arrays, 
+        const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
+        const std::vector<Q_Table>& q_tables);
 }
 
 #endif
