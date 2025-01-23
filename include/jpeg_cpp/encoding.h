@@ -183,8 +183,7 @@ namespace JPEG
     /// @param ac_tables List of AC tables. Note which table is used for each component is taken from comp_infos
     /// @param q_tables List of quantization tables. Note which table is used for each component is taken from comp_infos
     void encode_scan(std::vector<unsigned char>& out, std::vector<DU_Array<double>>& arrays, 
-        const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
-        const std::vector<Q_Table>& q_tables);
+        const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables);
 
     void encode_frame(std::vector<unsigned char>& out, unsigned int Y, unsigned int X, std::vector<DU_Array<double>>& arrays, 
         const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,

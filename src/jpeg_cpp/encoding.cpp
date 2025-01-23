@@ -497,8 +497,7 @@ namespace JPEG
     }
 
     void encode_scan(std::vector<unsigned char>& out, std::vector<DU_Array<double>>& arrays, 
-        const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
-        const std::vector<Q_Table>& q_tables)
+        const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables)
     {
         // Append scan header
         append_scan_header(out, comp_infos);
@@ -571,7 +570,7 @@ namespace JPEG
         append_frame_header(out, Y, X, comp_infos);
 
         // Finally encode the scan
-        encode_scan(out, arrays, comp_infos, dc_tables, ac_tables, q_tables);
+        encode_scan(out, arrays, comp_infos, dc_tables, ac_tables);
     }
 }
 
