@@ -120,11 +120,11 @@ namespace JPEG
             DC
         };
 
-        Huff_Table& table;
+        const Huff_Table& table;
         Huff_Table_Type type;
-        unsigned int destination_ind;
+        size_t destination_ind;
 
-        Huff_Table_Ref(Huff_Table& huff_table, Huff_Table_Type table_type, unsigned int destination) 
+        Huff_Table_Ref(const Huff_Table& huff_table, Huff_Table_Type table_type, size_t destination) 
         : table{ huff_table }, type{ table_type }, destination_ind{ destination }
         {
 
@@ -134,14 +134,14 @@ namespace JPEG
     /// @brief Appends the BITS list giving the number of codes of lengths 1 to 16
     /// @param out Output to append encoded BITS list to
     /// @param huff_table Table to encode
-    void append_BITS_array(std::vector<unsigned char>& out, Huff_Table& huff_table);
+    void append_BITS_array(std::vector<unsigned char>& out, const Huff_Table& huff_table);
 
     /// @brief Appends the HUFFVAL list giving the symbols in the Huffman table. Note this 
     /// assumes the Huffman table uses cannonical Huffman encoding. That, is for any i<j and 
     /// table[i].size()==table[i].size() then table[i]<table[j].
     /// @param out Output to append encoded HUFFVAL list to
     /// @param huff_table Table to encode
-    void append_HUFFVAL_array(std::vector<unsigned char>& out, Huff_Table& huff_table);
+    void append_HUFFVAL_array(std::vector<unsigned char>& out, const Huff_Table& huff_table);
 
     /// @brief Appends encoding for a specific Huffman table to the output. This only includes
     /// the data for this specific Huffman table, that is the table type, destination and the 
@@ -152,7 +152,7 @@ namespace JPEG
     /// i<j and table[i].size()==table[i].size() then table[i]<table[j].
     /// @param out Output to append encoded Huffman table data to
     /// @param huff_table Table to encode
-    void append_huff_table_data(std::vector<unsigned char>& out, Huff_Table_Ref& huff_table);
+    void append_huff_table_data(std::vector<unsigned char>& out, const Huff_Table_Ref& huff_table);
 
     /// @brief Appends Huffman table specification marker segment to the output. Note this 
     /// assumes the Huffman table uses cannonical Huffman encoding. That is, for any i<j 
@@ -183,6 +183,10 @@ namespace JPEG
     /// @param ac_tables List of AC tables. Note which table is used for each component is taken from comp_infos
     /// @param q_tables List of quantization tables. Note which table is used for each component is taken from comp_infos
     void encode_scan(std::vector<unsigned char>& out, std::vector<DU_Array<double>>& arrays, 
+        const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
+        const std::vector<Q_Table>& q_tables);
+
+    void encode_frame(std::vector<unsigned char>& out, unsigned int Y, unsigned int X, std::vector<DU_Array<double>>& arrays, 
         const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
         const std::vector<Q_Table>& q_tables);
 }

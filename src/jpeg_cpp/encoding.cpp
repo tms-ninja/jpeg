@@ -327,7 +327,7 @@ namespace JPEG
         }
     }
 
-    void append_BITS_array(std::vector<unsigned char>& out, Huff_Table& huff_table)
+    void append_BITS_array(std::vector<unsigned char>& out, const Huff_Table& huff_table)
     {
         std::array<unsigned char, 16> BITS{};
 
@@ -349,7 +349,7 @@ namespace JPEG
         }
     }
 
-    void append_HUFFVAL_array(std::vector<unsigned char>& out, Huff_Table& huff_table)
+    void append_HUFFVAL_array(std::vector<unsigned char>& out, const Huff_Table& huff_table)
     {
         assert("huffman table should not have symbols above 255" && huff_table.size()<255);
 
@@ -376,7 +376,7 @@ namespace JPEG
         }
     }
 
-    void append_huff_table_data(std::vector<unsigned char>& out, Huff_Table_Ref& huff_table)
+    void append_huff_table_data(std::vector<unsigned char>& out, const Huff_Table_Ref& huff_table)
     {
         // first append the table class and destination, table class is most significant
         // table_class should be 0 for DC, 1 for AC
@@ -532,6 +532,46 @@ namespace JPEG
                 out.push_back(0x00);
             }
         }
+    }
+
+    void encode_frame(std::vector<unsigned char>& out, unsigned int Y, unsigned int X, std::vector<DU_Array<double>>& arrays, 
+        const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
+        const std::vector<Q_Table>& q_tables)
+    {
+        // Append various tables starting with quantization tables
+        std::vector<unsigned int> q_table_inds;
+
+        for (auto &comp_info : comp_infos)
+        {
+            q_table_inds.push_back(comp_info.q_table_ind);
+        }
+        
+        append_q_table_marker_segment(out, q_tables, q_table_inds);
+
+        // Now add Huffman tables
+        std::vector<Huff_Table_Ref> huff_refs;
+
+        for (auto &comp_info : comp_infos)
+        {
+            huff_refs.emplace_back(
+                dc_tables[comp_info.DC_Huff_table_ind], 
+                Huff_Table_Ref::Huff_Table_Type::DC,
+                comp_info.DC_Huff_table_ind
+            );
+            huff_refs.emplace_back(
+                ac_tables[comp_info.AC_Huff_table_ind], 
+                Huff_Table_Ref::Huff_Table_Type::AC,
+                comp_info.AC_Huff_table_ind
+            );
+        }
+        
+        append_huff_table_marker_segment(out, huff_refs);
+
+        // Now append the frame header
+        append_frame_header(out, Y, X, comp_infos);
+
+        // Finally encode the scan
+        encode_scan(out, arrays, comp_infos, dc_tables, ac_tables, q_tables);
     }
 }
 
