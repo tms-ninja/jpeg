@@ -572,5 +572,92 @@ namespace JPEG
         // Finally encode the scan
         encode_scan(out, arrays, comp_infos, dc_tables, ac_tables);
     }
+
+    DU_Array<double> convert_to_DU_Array(const Array_2d<double>& array_2d, const Comp_Info& comp_info)
+    {   
+        // Number of data units
+        const size_t N_du{ array_2d.size() / 64 };
+        // Width of array_2d in units of data untis
+        const size_t width_du{ array_2d.shape()[1] / 8 };
+
+        const size_t H{ comp_info.H }, V{ comp_info.V };
+
+        DU_Array<double> du_array(N_du);
+
+        for (size_t ind = 0; ind < N_du; ind++)
+        {
+            // Index of the MCU du_array[ind] exists in
+            const size_t mcu_ind{ ind / (H*V) };
+            const size_t offset{ ind % (H*V) };
+
+            // position of first data unit in the mcu in array_2d in units of data units 
+            const size_t mcu_i{ ((mcu_ind*H) / width_du) * V };
+            const size_t mcu_j{ (mcu_ind*H) % width_du };
+
+            // position of the data unit we're actually interested in,
+            // in units of data units
+            const size_t du_i{ mcu_i + offset / H };
+            const size_t du_j{ mcu_j + offset % H };
+
+            // Indices in array_2d of the data unit we're copying
+            const size_t i_begin{ 8*du_i };
+            const size_t j_begin{ 8*du_j };
+
+            for (size_t i = 0; i < 8; i++)
+            {
+                for (size_t j = 0; j < 8; j++)
+                {
+                    du_array(ind, i, j) = array_2d(i_begin+i, j_begin+j);
+                }
+            }
+        }
+
+        return du_array;
+    }
+
+    std::vector<unsigned char> encode_image(unsigned int Y, unsigned int X, const std::vector<Array_2d<double>>& arrays, 
+        const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
+        const std::vector<Q_Table>& q_tables)
+    {
+        // Reshape the arrays into DU_Arrays
+        std::vector<DU_Array<double>> du_arrays;
+
+        for (size_t comp_ind = 0; comp_ind < comp_infos.size(); comp_ind++)
+        {
+            auto& array{ arrays[comp_ind] };
+            auto& comp_info{ comp_infos[comp_ind] };
+
+            du_arrays.push_back(std::move(convert_to_DU_Array(array, comp_info)));
+        }
+        
+        // Perform numerical operations
+        for (size_t comp_ind = 0; comp_ind < du_arrays.size(); comp_ind++)
+        {
+            auto& array{ du_arrays[comp_ind] };
+
+            apply_level_shift(array);
+            apply_DCT(array);
+
+            auto& q_table{ q_tables[comp_infos[comp_ind].q_table_ind] };
+
+            apply_quantization(array, q_table);
+        }
+
+        // Now we can encode the image
+        // First apply the start of image marker, FFD8
+        std::vector<unsigned char> encoded_image;
+
+        encoded_image.push_back(0xFF);
+        encoded_image.push_back(0xD8);
+
+        // Append the encoded frame
+        encode_frame(encoded_image, Y, X, du_arrays, comp_infos, dc_tables, ac_tables, q_tables);
+
+        // Lastly append the end of image marker, FFD9
+        encoded_image.push_back(0xFF);
+        encoded_image.push_back(0xD9);
+
+        return encoded_image;
+    }
 }
 

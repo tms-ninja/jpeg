@@ -188,6 +188,27 @@ namespace JPEG
     void encode_frame(std::vector<unsigned char>& out, unsigned int Y, unsigned int X, std::vector<DU_Array<double>>& arrays, 
         const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
         const std::vector<Q_Table>& q_tables);
+
+    /// @brief Converts from a 2d array representation to a data unit array representation. Note the array_2d should be 
+    /// appropriately enlarged to ensure an integer number of MCUs
+    /// @param array_2d Array_2d to convert
+    /// @param comp_info Comp_Info describing the component, including the H and V sampling factors
+    /// @return The Array_2d in DU_Array representation
+    DU_Array<double> convert_to_DU_Array(const Array_2d<double>& array_2d, const Comp_Info& comp_info);
+
+    /// @brief Encodes an image, note components should be appropriately enlarged to ensure an integer number of MCUs
+    /// @param Y Height of the image in pixels
+    /// @param X Width of the image in pixels
+    /// @param arrays Image components. Any colour transformation/subsampling should have already be performed. In particular,
+    /// components should be appropriately enlarged to ensure an integer number of MCUs
+    /// @param comp_infos Comp_Infos for each corresponding component
+    /// @param dc_tables DC Huffman tables to be used in the encoding process
+    /// @param ac_tables AC Huffman tables to be used in the encoding process
+    /// @param q_tables Quantization tables to be used in the encoding process
+    /// @return The encoded image
+    std::vector<unsigned char> encode_image(unsigned int Y, unsigned int X, const std::vector<Array_2d<double>>& arrays, 
+        const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
+        const std::vector<Q_Table>& q_tables);
 }
 
 #endif
