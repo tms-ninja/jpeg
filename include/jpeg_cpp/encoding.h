@@ -209,6 +209,14 @@ namespace JPEG
     std::vector<unsigned char> encode_image(unsigned int Y, unsigned int X, const std::vector<Array_2d<double>>& arrays, 
         const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
         const std::vector<Q_Table>& q_tables);
+
+    /// @brief Enlarges the component as necessary to ensure the required integer number of data units vertically and horizontally.
+    /// If the original component satisfies these requriements, a copy is returned
+    /// @param orig_comp Component to enlarge
+    /// @param V Vertical sampling factor
+    /// @param H Horizontal sampling factor
+    /// @return A new Array_2d that satisfies the width and height requirements
+    Array_2d<double> enlarge_component(const Array_2d<double> orig_comp, unsigned int V, unsigned int H);
 }
 
 #endif

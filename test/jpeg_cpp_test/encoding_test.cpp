@@ -103,6 +103,18 @@ Array_2d<double> gen_array_2d_32x32()
     return array;
 }
 
+Array_2d<double> gen_array_2d_arange(size_t rows, size_t cols)
+{
+    Array_2d<double> array{rows, cols};
+
+    for (size_t ind = 0; ind < array.size(); ind++)
+    {
+        array[ind] = ind;
+    }
+    
+    return array;
+}
+
 TEST_CASE( "apply_level_shift()::level shift values in DU_Array", "[apply_level_shift()]" ) {
     DU_Array<double> array{ gen_arange_DU_Array() };
     
@@ -2659,3 +2671,79 @@ TEST_CASE( "convert_to_DU_Array()::H=2, V=2", "[convert_to_DU_Array()]" ) {
         REQUIRE( actual_result[ind] == expected_result[ind] );
     }
 }
+
+TEST_CASE( "enlarge_component()::8x8 H=1, V=1", "[enlarge_component()]" ) {
+    const unsigned int H{ 1 }, V{ 1 };
+    Array_2d<double> input_array{ gen_array_2d_arange(8, 8) };
+
+    // Output should be the same as input
+    Array_2d<double> expected_result{ input_array };
+
+    Array_2d<double> actual_result{ enlarge_component(input_array, V, H) };
+
+    REQUIRE( actual_result.size() == expected_result.size() );
+
+    for (size_t ind = 0; ind < expected_result.size(); ind++)
+    {
+        REQUIRE( actual_result[ind] == expected_result[ind] );
+    }
+}
+
+TEST_CASE( "enlarge_component()::8x8 H=2, V=2", "[enlarge_component()]" ) {
+    const unsigned int H{ 2 }, V{ 2 };
+    Array_2d<double> input_array{ gen_array_2d_arange(8, 8) };
+
+    Array_2d<double> expected_result{ 
+        { 0,   1,   2,   3,   4,   5,   6,   7,   7,   7,   7,   7,   7,   7,   7,   7},
+        { 8,   9,  10,  11,  12,  13,  14,  15,  15,  15,  15,  15,  15,  15,  15,  15},
+        {16,  17,  18,  19,  20,  21,  22,  23,  23,  23,  23,  23,  23,  23,  23,  23},
+        {24,  25,  26,  27,  28,  29,  30,  31,  31,  31,  31,  31,  31,  31,  31,  31},
+        {32,  33,  34,  35,  36,  37,  38,  39,  39,  39,  39,  39,  39,  39,  39,  39},
+        {40,  41,  42,  43,  44,  45,  46,  47,  47,  47,  47,  47,  47,  47,  47,  47},
+        {48,  49,  50,  51,  52,  53,  54,  55,  55,  55,  55,  55,  55,  55,  55,  55},
+        {56,  57,  58,  59,  60,  61,  62,  63,  63,  63,  63,  63,  63,  63,  63,  63},
+        {56,  57,  58,  59,  60,  61,  62,  63, 128, 128, 128, 128, 128, 128, 128, 128},
+        {56,  57,  58,  59,  60,  61,  62,  63, 128, 128, 128, 128, 128, 128, 128, 128},
+        {56,  57,  58,  59,  60,  61,  62,  63, 128, 128, 128, 128, 128, 128, 128, 128},
+        {56,  57,  58,  59,  60,  61,  62,  63, 128, 128, 128, 128, 128, 128, 128, 128},
+        {56,  57,  58,  59,  60,  61,  62,  63, 128, 128, 128, 128, 128, 128, 128, 128},
+        {56,  57,  58,  59,  60,  61,  62,  63, 128, 128, 128, 128, 128, 128, 128, 128},
+        {56,  57,  58,  59,  60,  61,  62,  63, 128, 128, 128, 128, 128, 128, 128, 128},
+        {56,  57,  58,  59,  60,  61,  62,  63, 128, 128, 128, 128, 128, 128, 128, 128},
+     };
+
+    Array_2d<double> actual_result{ enlarge_component(input_array, V, H) };
+
+    REQUIRE( actual_result.size() == expected_result.size() );
+
+    for (size_t ind = 0; ind < expected_result.size(); ind++)
+    {
+        REQUIRE( actual_result[ind] == expected_result[ind] );
+    }
+}
+
+TEST_CASE( "enlarge_component()::2x3 H=1, V=1", "[enlarge_component()]" ) {
+    const unsigned int H{ 1 }, V{ 1 };
+    Array_2d<double> input_array{ gen_array_2d_arange(2, 3) };
+
+    Array_2d<double> expected_result{ 
+        {0,   1,   2,   2,   2,   2,   2,   2},
+        {3,   4,   5,   5,   5,   5,   5,   5},
+        {3,   4,   5, 128, 128, 128, 128, 128},
+        {3,   4,   5, 128, 128, 128, 128, 128},
+        {3,   4,   5, 128, 128, 128, 128, 128},
+        {3,   4,   5, 128, 128, 128, 128, 128},
+        {3,   4,   5, 128, 128, 128, 128, 128},
+        {3,   4,   5, 128, 128, 128, 128, 128},
+     };
+
+    Array_2d<double> actual_result{ enlarge_component(input_array, V, H) };
+
+    REQUIRE( actual_result.size() == expected_result.size() );
+
+    for (size_t ind = 0; ind < expected_result.size(); ind++)
+    {
+        REQUIRE( actual_result[ind] == expected_result[ind] );
+    }
+}
+

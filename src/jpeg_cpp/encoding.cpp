@@ -659,5 +659,53 @@ namespace JPEG
 
         return encoded_image;
     }
+
+    Array_2d<double> enlarge_component(const Array_2d<double> orig_comp, unsigned int V, unsigned int H)
+    {
+        const size_t cur_height{ orig_comp.shape()[0] }, cur_width{ orig_comp.shape()[1] };
+        const size_t mcu_height{ 8*V }, mcu_width{ 8*H };
+
+        // The height/width of the enlarged component
+        const size_t required_height{ cur_height % mcu_height ? (1+cur_height/mcu_height)*mcu_height : cur_height };
+        const size_t required_width{ cur_width % mcu_width ? (1+cur_width/mcu_width)*mcu_width : cur_width };
+        
+        // Both height and width requirements met, just return a copy
+        if (cur_height==required_height && cur_width==required_width)
+        {
+            return Array_2d<double>{orig_comp};
+        }
+
+        // Need to enlarge
+        Array_2d<double> enlarged_component{ required_height, required_width };
+
+        for (size_t i = 0; i < required_height; i++)
+        {
+            for (size_t j = 0; j < required_width; j++)
+            {
+                if (i<cur_height && j<cur_width)
+                {
+                    // Copy the original data
+                    enlarged_component(i, j) = orig_comp(i, j);
+                }
+                else if (i>=cur_height && j<cur_width)
+                {
+                    // Rows beneath the original data
+                    enlarged_component(i, j) = orig_comp(cur_height-1, j);
+                }
+                else if (i<cur_height && j>=cur_width)
+                {
+                    // Columns to the right of the original data
+                    enlarged_component(i, j) = orig_comp(i, cur_width-1);
+                }
+                else
+                {
+                    // Rectangle in the far right, set to 128 as that seems a neutral choice
+                    enlarged_component(i, j) = 128;
+                }
+            }
+        }
+        
+        return enlarged_component;
+    }
 }
 
