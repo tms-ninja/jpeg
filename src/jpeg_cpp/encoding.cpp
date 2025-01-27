@@ -508,7 +508,7 @@ namespace JPEG
         std::vector<int> prev_dc(arrays.size());
         std::vector<size_t> du_ind(arrays.size());
 
-        while (du_ind[0]<arrays[0].size())
+        while (du_ind[0]<arrays[0].shape()[0])
         {
             append_mcu(bs, prev_dc, du_ind, arrays, comp_infos, dc_tables, ac_tables);
         }
