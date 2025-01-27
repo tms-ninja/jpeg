@@ -13,6 +13,7 @@ add_executable(jpeg_cpp_test
               bit_string_test.cpp
               encoding_test.cpp
               huff_table_test.cpp
+              jpeg_test.cpp
               q_table_test.cpp
 )
 

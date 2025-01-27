@@ -12,6 +12,8 @@ add_library(jpeg_cpp SHARED
             "${jpeg_SOURCE_DIR}/include/jpeg_cpp/general.h"
             "${jpeg_SOURCE_DIR}/include/jpeg_cpp/huff_table.h"
             huff_table.cpp
+            "${jpeg_SOURCE_DIR}/include/jpeg_cpp/jpeg.h"
+            jpeg.cpp
             "${jpeg_SOURCE_DIR}/include/jpeg_cpp/q_table.h"
             q_table.cpp
 )
