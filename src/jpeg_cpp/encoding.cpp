@@ -519,7 +519,7 @@ namespace JPEG
             bs.append_bit(1);
         }
 
-        const auto end{ bs.data() + bs.size() };
+        const auto end{ bs.data() + bs.size() / bits_per_char };
 
         for (auto c_ptr=bs.data(); c_ptr!=end; ++c_ptr)
         {
