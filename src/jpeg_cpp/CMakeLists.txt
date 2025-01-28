@@ -40,13 +40,29 @@ if(DEFINED SKBUILD)
         EXPORT jpeg_cpp_targets
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-    # Something to do with making find_package() work?
-    set(JPEG_CPP_CMAKE_PACKAGE_INSTALL_SUBDIR "share/jpeg_cpp/cmake")
+    # # I think the rest of this is something to do with making find_package() work?
+    # Think we can skip it for now
+    # set(JPEG_CPP_CMAKE_PACKAGE_INSTALL_SUBDIR "share/jpeg_cpp/cmake")
 
-    # No idea
-    install(
-        EXPORT jpeg_cpp_targets
-        NAMESPACE jpeg_cpp::
-        DESTINATION ${JPEG_CPP_CMAKE_PACKAGE_INSTALL_SUBDIR})
+    # # No idea
+    # install(
+    #     EXPORT jpeg_cpp_targets
+    #     NAMESPACE jpeg_cpp::
+    #     DESTINATION ${JPEG_CPP_CMAKE_PACKAGE_INSTALL_SUBDIR})
+
+    # include(CMakePackageConfigHelpers)
+
+    # write_basic_package_version_file(
+    #     jpeg_cppConfigVersion.cmake
+    #     VERSION ${PROJECT_VERSION}
+    #     COMPATIBILITY SameMinorVersion)
+    
+    # configure_package_config_file(
+    #     "${PROJECT_SOURCE_DIR}/cmake/jpeg_cppConfig.cmake.in" jpeg_cppConfig.cmake
+    #     INSTALL_DESTINATION ${JPEG_CPP_CMAKE_PACKAGE_INSTALL_SUBDIR})
+    
+    # install(FILES "${PROJECT_BINARY_DIR}/jpeg_cppConfig.cmake"
+    #                 "${PROJECT_BINARY_DIR}/jpeg_cppConfigVersion.cmake"
+    #         DESTINATION ${JPEG_CPP_CMAKE_PACKAGE_INSTALL_SUBDIR})
 
 endif()

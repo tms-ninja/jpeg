@@ -16,7 +16,6 @@ if(DEFINED SKBUILD)
     install(TARGETS jpeg DESTINATION .)
 
     # Something to do with ensuring the C++ library is loaded when the Python extension is loaded
-    # Need to work out what exactly is going on here
     if(APPLE)
         set_target_properties(
             jpeg PROPERTIES INSTALL_RPATH "@loader_path/${CMAKE_INSTALL_LIBDIR}")
