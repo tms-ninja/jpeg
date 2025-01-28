@@ -1,0 +1,29 @@
+[build-system]
+requires = ["scikit-build-core", "numpy>=2.0"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "jpeg"
+description = "A simple JPEG encoder for Python"
+version = "0.1"
+dependencies = [
+    "numpy>=2.0"
+]
+authors = [
+    {name = "Tom Spencer", email = "tspencerprog@gmail.com"},
+]
+readme = "README.md"
+license = {text = "GPLv3 or later"}
+requires-python = ">=3"
+classifiers  =  [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: OS Independent",
+]
+
+[project.optional-dependencies]
+testing = ["Pillow"]  # Need Pillow for testing in Python
+
+[project.urls]
+homepage = "https://github.com/tms-ninja/jpeg"
+repository = "https://github.com/tms-ninja/jpeg"
