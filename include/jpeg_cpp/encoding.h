@@ -30,6 +30,8 @@ namespace JPEG
         61, 54, 47, 55, 62, 63
     };
 
+    /// @brief Applies the level shift of subtracting 128 to the array
+    /// @param array Array to apply level shift to
     void apply_level_shift(DU_Array<double>& array);
 
     /// @brief Loads matrix for computing the discrete cosine transform
@@ -52,13 +54,21 @@ namespace JPEG
     /// @param N Size of the matrix, ie. a, b c have shape (N, N)
     void mat_mul(const double* a, const double* b, double* c, size_t N);
 
+    /// @brief Applies a quasi discrete cosine transform to the array. Specifically, it applies the transform
+    /// less the factors of 1/sqrt(2) that apply to elements in the top row/left column
+    /// @param array Array to apply the DCT to
     void apply_DCT(DU_Array<double>& array);
 
+    /// @brief Quantizes the elements in the given array. It internally accounts for factors of 1/sqrt(2) that
+    /// apply to elements in the top row/left column from the DCT stage. These do not need to be accounted for 
+    /// by the caller.
+    /// @param array Array to apply the DCT to
+    /// @param q_table Quantization table used to quantize the elements in array
     void apply_quantization(DU_Array<double>& array, const Q_Table& q_table);
 
     /// @brief Computes ssss value of a number. For n!=0, this is the number such that 
     /// n >> ssss == 1. For n==0 this is 0. This function assumes ssss<=11, i.e. n<=2047.
-    /// @param n 
+    /// @param n Number to compute ssss of
     /// @return The ssss of n
     unsigned int compute_ssss(unsigned int n);
 
@@ -112,6 +122,7 @@ namespace JPEG
     void append_q_table_marker_segment(std::vector<unsigned char>& out, const std::vector<Q_Table>& q_tables, 
                         std::vector<unsigned int>& destination_indices);
     
+    /// @brief Represents a reference to a Huffman table along with information like its DC/AC type
     struct Huff_Table_Ref
     {
         enum class Huff_Table_Type
@@ -176,7 +187,7 @@ namespace JPEG
 
     /// @brief Encodes a scan. Note does not perform level shift/DCT/quantization
     /// @param out Output to append scan to
-    /// @param arrays Arrays comtaining the data units for each component. level shift/DCT/quantization should have already
+    /// @param arrays Arrays comtaining the data units for each component. Level shift/DCT/quantization should have already
     /// been performed
     /// @param comp_infos List of components in the scan
     /// @param dc_tables List of DC tables. Note which table is used for each component is taken from comp_infos
@@ -185,6 +196,16 @@ namespace JPEG
     void encode_scan(std::vector<unsigned char>& out, std::vector<DU_Array<double>>& arrays, 
         const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables);
 
+    /// @brief Encodes a frame. Note does not perform level shift/DCT/quantization
+    /// @param out Output to append frame to
+    /// @param Y Height of the image in pixels
+    /// @param X Width of the image in pixels
+    /// @param arrays Arrays comtaining the data units for each component. Level shift/DCT/quantization should have already
+    /// been performed
+    /// @param comp_infos List of components in the scan
+    /// @param dc_tables List of DC tables. Note which table is used for each component is taken from comp_infos
+    /// @param ac_tables List of AC tables. Note which table is used for each component is taken from comp_infos
+    /// @param q_tables List of quantization tables. Note which table is used for each component is taken from comp_infos
     void encode_frame(std::vector<unsigned char>& out, unsigned int Y, unsigned int X, std::vector<DU_Array<double>>& arrays, 
         const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
         const std::vector<Q_Table>& q_tables);
