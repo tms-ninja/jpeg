@@ -2,4 +2,4 @@
 add_subdirectory(jpeg_cpp)
 
 # Python wrapper
-add_subdirectory(jpeg)
+add_subdirectory(jpeg_py)
