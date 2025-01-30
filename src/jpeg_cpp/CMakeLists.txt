@@ -23,7 +23,11 @@ target_include_directories(jpeg_cpp PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DI
                                             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 # Enable all warnings including additioal warnings
-target_compile_options(jpeg_cpp PRIVATE -Wall -Wextra)
+if(MSVC)
+    target_compile_options(jpeg_cpp PRIVATE /W4)
+else()
+    target_compile_options(jpeg_cpp PRIVATE -Wall -Wextra)
+endif()
 
 # Ensure compiler supports at least C++17
 target_compile_features(jpeg_cpp PUBLIC cxx_std_17)
@@ -34,7 +38,6 @@ if(DEFINED SKBUILD)
     install(DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-    # Installs the jpeg_cpp library in the right place for the python package
     install(
         TARGETS jpeg_cpp
         EXPORT jpeg_cpp_targets

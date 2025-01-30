@@ -1,12 +1,13 @@
 #ifndef ENCODING_H
 #define ENCODING_H
 
-#include <array>
-#include <cassert>
-
 // Needed to access pi constant
+// Move to the top so MSVC can find M_PI
 #define _USE_MATH_DEFINES
 #include <cmath>
+
+#include <array>
+#include <cassert>
 
 #include <stdexcept>
 #include <vector>
