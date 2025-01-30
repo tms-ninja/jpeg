@@ -65,6 +65,17 @@
         "streambuf": "cpp",
         "thread": "cpp",
         "typeinfo": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "complex": "cpp",
+        "cinttypes": "cpp"
     },
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./test/jpeg_py_test",
+        "-p",
+        "*test*.py"
+    ],
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true,
 }

@@ -324,10 +324,13 @@ namespace JPEG {
         /// @return Element at given row/column of the selected data unit
         T& at(size_t DU_ind, size_t row, size_t column)
         {
+            assert("du_ind is out of bounds" && DU_ind<arr_shape[0]);
+            assert("row is out of bounds" && row<arr_shape[1]);
+            assert("column is out of bounds" && column<arr_shape[2]);
+
             size_t buffer_ind;
 
             buffer_ind = DU_ind*DU_height*DU_width + row*DU_width + column;
-            assert("Index out of bounds" && buffer_ind<size());
 
             return buffer[buffer_ind];
         }
@@ -339,10 +342,13 @@ namespace JPEG {
         /// @return Element at given row/column of the selected data unit
         const T& at(size_t DU_ind, size_t row, size_t column) const
         {
+            assert("du_ind is out of bounds" && DU_ind<arr_shape[0]);
+            assert("row is out of bounds" && row<arr_shape[1]);
+            assert("column is out of bounds" && column<arr_shape[2]);
+
             size_t buffer_ind;
 
             buffer_ind = DU_ind*DU_height*DU_width + row*DU_width + column;
-            assert("Index out of bounds" && buffer_ind<size());
 
             return buffer[buffer_ind];
         }
@@ -354,7 +360,7 @@ namespace JPEG {
         /// @return Element at given row/column of the selected data unit
         T& operator()(size_t DU_ind, size_t row, size_t column)
         {
-            at(DU_ind, row, column);
+            return at(DU_ind, row, column);
         }
 
         /// @brief Gets the element at the given row/column of the selected data unit
@@ -364,7 +370,7 @@ namespace JPEG {
         /// @return Element at given row/column of the selected data unit
         const T& operator()(size_t DU_ind, size_t row, size_t column) const
         {
-            at(DU_ind, row, column);
+            return at(DU_ind, row, column);
         }
 
         friend std::ostream& operator<<(std::ostream& out, const DU_Array<T>& du_arr)

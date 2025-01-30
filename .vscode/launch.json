@@ -13,6 +13,13 @@
             "cwd": "${cmake.testWorkingDirectory}",
             "program": "${cmake.testProgram}",
             "args": [ "${cmake.testArgs}"],
+            "setupCommands": [
+                {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+                }
+            ],
         }
     ]
 }
