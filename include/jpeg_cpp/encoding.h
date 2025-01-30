@@ -31,6 +31,17 @@ namespace JPEG
         61, 54, 47, 55, 62, 63
     };
 
+    /// @brief Appends the last two bytes to the vector, most significant first
+    /// @param out Vector to append bytes to
+    /// @param bytes Number containing bytes
+    void append_two_bytes(std::vector<unsigned char>& out, unsigned long long bytes);
+
+    /// @brief Appends a composite byte to the vector
+    /// @param out Vector to append byte to
+    /// @param high Source of the 4 high bits, taken from the 4 low bits of high, most significant first
+    /// @param low Source of the 4 low bits, taken from the 4 low bits of low, most significant first
+    void append_composite_byte(std::vector<unsigned char>& out, unsigned long long high, unsigned long long low);
+
     /// @brief Applies the level shift of subtracting 128 to the array
     /// @param array Array to apply level shift to
     void apply_level_shift(DU_Array<double>& array);

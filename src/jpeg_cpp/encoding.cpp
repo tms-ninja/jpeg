@@ -2,6 +2,17 @@
 
 namespace JPEG
 {
+    void append_two_bytes(std::vector<unsigned char>& out, unsigned long long bytes)
+    {
+        out.push_back(static_cast<unsigned char>(bytes >> 8));
+        out.push_back(static_cast<unsigned char>(0xFF & bytes));
+    }
+
+    void append_composite_byte(std::vector<unsigned char>& out, unsigned long long high, unsigned long long low)
+    {
+        out.push_back(static_cast<unsigned char>((high << 4) | low));
+    }
+
     void apply_level_shift(DU_Array<double> &array)
     {
         for (size_t ind = 0; ind < array.size(); ind++)
@@ -170,7 +181,7 @@ namespace JPEG
             bs.append_last_ssss_bits(~static_cast<unsigned int>(-diff), ssss);
         }
     }
-
+    
     void encode_AC_coeff(Bit_String& bs, int coeff, unsigned int rrrr, const Huff_Table& huff_table)
     {
         assert("coeff should not be zero" && coeff!=0);
@@ -234,7 +245,7 @@ namespace JPEG
             }
 
             // Now encode the current, non-zero coefficient
-            encode_AC_coeff(bs, value_to_encode, r, huff_table);
+            encode_AC_coeff(bs, value_to_encode, static_cast<unsigned char>(r), huff_table);
 
             // Reset the run length of zeros
             r = 0;
@@ -269,8 +280,9 @@ namespace JPEG
         // Now determine the length of the marker segment
         size_t length{ 2 + 65 * q_tables.size() };
 
-        out.push_back(length >> 8);
-        out.push_back(0xFF & length);
+        append_two_bytes(out, length);
+        // out.push_back(length >> 8);
+        // out.push_back(0xFF & length);
 
         // Now append each table in turn
         for (size_t table_ind = 0; table_ind < q_tables.size(); table_ind++)
@@ -285,7 +297,7 @@ namespace JPEG
             assert("Tq cannot be greater than 3" && Tq<=3);
 
             // Pq & Tq form one byte, Pq most significant
-            out.push_back((Pq << 4) + Tq);
+            append_composite_byte(out, Pq, Tq);
 
             // Now need to append the value of the quantization table in zig-zag order
             const auto& zz{ zig_zag_order };
@@ -293,7 +305,7 @@ namespace JPEG
             for (size_t ind = 0; ind < table.size(); ind++)
             {   
                 assert("Quantization table values must be less than 256" && table[zz[ind]]);
-                out.push_back(table[zz[ind]]);
+                out.push_back(static_cast<unsigned char>(table[zz[ind]]));
             }
         }
     }
@@ -370,7 +382,7 @@ namespace JPEG
                 if (bs.size()==code_size)
                 {
                     // The symbol corresponds to index of the Huffman table
-                    out.push_back(bs_ind);
+                    out.push_back(static_cast<unsigned char>(bs_ind));
                 }
             }
         }
@@ -382,7 +394,7 @@ namespace JPEG
         // table_class should be 0 for DC, 1 for AC
         unsigned int table_class{ huff_table.type==Huff_Table_Ref::Huff_Table_Type::AC };
 
-        out.push_back((table_class << 4) + huff_table.destination_ind);
+        append_composite_byte(out, table_class, huff_table.destination_ind);
 
         // Append the BITS list
         append_BITS_array(out, huff_table.table);
@@ -411,8 +423,8 @@ namespace JPEG
         // Finally go back and fill in the length, most significant byte first
         size_t bytes_appended{ out.size()-length_ind };
 
-        out[length_ind] = bytes_appended >> 8;
-        out[length_ind+1] = bytes_appended & 0xFF;
+        out[length_ind] = static_cast<unsigned char>(bytes_appended >> 8);
+        out[length_ind+1] = static_cast<unsigned char>(bytes_appended & 0xFF);
     }
 
     void append_scan_header(std::vector<unsigned char>& out, const std::vector<Comp_Info>& comp_infos)
@@ -423,23 +435,23 @@ namespace JPEG
 
         // Determine length
         unsigned int scan_header_length{ 6 + 2 * static_cast<unsigned int>(comp_infos.size()) };
-        out.push_back(scan_header_length >> 8);
-        out.push_back(scan_header_length & 0xFF);
+        append_two_bytes(out, scan_header_length);
 
         // Add number of components in the scan
-        out.push_back(comp_infos.size());
+        out.push_back(static_cast<unsigned char>(comp_infos.size()));
 
         // Add component specific data
         for (size_t comp_ind = 0; comp_ind < comp_infos.size(); comp_ind++)
         {
             // Index of component in scan
-            out.push_back(comp_ind);
+            out.push_back(static_cast<unsigned char>(comp_ind));
 
             // Composite byte of DC and AC table destinations
             // DC index is most significant
             size_t dc_destination{ comp_infos[comp_ind].DC_Huff_table_ind };
             size_t ac_destination{ comp_infos[comp_ind].AC_Huff_table_ind };
-            out.push_back((dc_destination << 4) + ac_destination);
+
+            append_composite_byte(out, dc_destination, ac_destination);
         }
 
         // Start of spectral or predictor selection
@@ -464,35 +476,33 @@ namespace JPEG
 
         // Length of frame header
         unsigned int frame_header_length{ 8 + 3 * static_cast<unsigned int>(comp_infos.size()) };
-        out.push_back(frame_header_length >> 8);
-        out.push_back(frame_header_length & 0xFF);
+        
+        append_two_bytes(out, frame_header_length);
 
         // Sample precision in bits, 1 byte
         out.push_back(8);
 
         // Height and width of image, 2 bytes each
-        out.push_back(Y >> 8);
-        out.push_back(Y & 0xFF);
+        append_two_bytes(out, Y);
 
-        out.push_back(X >> 8);
-        out.push_back(X & 0xFF);
+        append_two_bytes(out, X);
 
         // Number of components in frame, 1 byte
-        out.push_back(comp_infos.size());
+        out.push_back(static_cast<unsigned char>(comp_infos.size()));
 
         // Component specific stuff
         for (size_t comp_ind = 0; comp_ind < comp_infos.size(); comp_ind++)
         {
             // Component identifier, 1 byte
-            out.push_back(comp_ind);
+            out.push_back(static_cast<unsigned char>(comp_ind));
 
             // Composite byte containing H sampling factor (most significant) and V sampling
             // factor (least significant)
             unsigned int H{ comp_infos[comp_ind].H }, V{ comp_infos[comp_ind].V };
-            out.push_back((H << 4) + V);
+            append_composite_byte(out, H, V);
 
             // Quantization table destination index, 1 byte
-            out.push_back(comp_infos[comp_ind].q_table_ind); 
+            out.push_back(static_cast<unsigned char>(comp_infos[comp_ind].q_table_ind)); 
         }
     }
 
@@ -542,7 +552,7 @@ namespace JPEG
 
         for (auto &comp_info : comp_infos)
         {
-            q_table_inds.push_back(comp_info.q_table_ind);
+            q_table_inds.push_back(static_cast<unsigned char>(comp_info.q_table_ind));
         }
         
         append_q_table_marker_segment(out, q_tables, q_table_inds);
