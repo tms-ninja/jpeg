@@ -104,6 +104,23 @@ int convert_numpy_to_array_2d(PyObject* obj, JPEG::Array_2d<double>& array_2d)
     return 0;
 }
 
+PyDoc_STRVAR(encode_greyscale_docstring,
+    "encode_greyscale(data)\n"  // Include function's signature first 
+    "--\n\n"                    // We need this "--\n\n" so Python knows the first line is the function signature
+    "\n"
+    "Encodes a greyscale image as a JPEG\n"
+    "\n"
+    "Parameters\n"
+    "----------\n"
+    "data : numpy.ndarray\n"
+    "    Image data to encode\n"
+    "\n"
+    "Returns\n"
+    "-------\n"
+    "bytes\n"
+    "    The encoded image as a series of bytes"
+);
+
 static PyObject *encode_greyscale(PyObject *self, PyObject *args) {
     PyObject* np_array;
 
@@ -129,7 +146,7 @@ static PyObject *encode_greyscale(PyObject *self, PyObject *args) {
 }
 
 static PyMethodDef jpeg_methods[] = {
-    {"encode_greyscale", encode_greyscale, METH_VARARGS, "Encodes a greyscale image"},
+    {"encode_greyscale", encode_greyscale, METH_VARARGS, encode_greyscale_docstring},
     {NULL, NULL, 0, NULL}
 };
 
