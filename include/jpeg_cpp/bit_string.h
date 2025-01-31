@@ -10,8 +10,7 @@
 namespace JPEG {
 
     // Check unsigned char have exactly 8 bits
-    constexpr unsigned int bits_per_char{ 8 };
-    static_assert(CHAR_BIT==bits_per_char, "char type has more than 8 bits!");
+    static_assert(CHAR_BIT==8, "char type has more than 8 bits!");
 
     // bit selector for the most significant bit in an 8 bit byte
     constexpr unsigned int MSB_selector{ 0b10'000'000u };
