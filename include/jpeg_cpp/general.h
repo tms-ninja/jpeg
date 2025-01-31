@@ -13,6 +13,9 @@ namespace JPEG
     // Width and height of a data unit
     constexpr unsigned int du_width{ 8 };
     constexpr unsigned int du_height{ 8 };
+
+    // Number of elements in a data unit 
+    constexpr unsigned int du_size{ 64 };
 }
 
 #endif

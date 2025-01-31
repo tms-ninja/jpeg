@@ -78,16 +78,18 @@ namespace JPEG
     void apply_DCT(DU_Array<double> &array)
     {
         // Buffer to store the intermediate result of data unit*DCT matrix
-        std::array<double, 64> double_buffer;
+        std::array<double, du_size> double_buffer;
         const auto arr_shape{ array.shape() };
 
         for (size_t du_ind = 0; du_ind < arr_shape[0]; du_ind++)
         {
             // Compute data unit*DCT matrix
-            mat_mul(&array[du_ind*64], DCT_matrix.data(), &double_buffer[0], arr_shape[1]);
+            double* du_ptr{ &array[du_ind*du_size] };
+
+            mat_mul(du_ptr, DCT_matrix.data(), &double_buffer[0], arr_shape[1]);
 
             // Compute transpose(DCT matrix) * termporary
-            mat_mul(DCT_matrix_transpose.data(), &double_buffer[0], &array[du_ind*64], arr_shape[1]);
+            mat_mul(DCT_matrix_transpose.data(), &double_buffer[0], du_ptr, arr_shape[1]);
         }
     }
 
@@ -207,7 +209,7 @@ namespace JPEG
         const auto& zz{ zig_zag_order };
 
         // Pointer to the start of the data unit we are encoding
-        const double* du_ptr{ du_array.data() + du_ind*64 };
+        const double* du_ptr{ du_array.data() + du_ind*du_size};
         size_t end_of_block{ 0x00 };  // EOB RRRRSSSS code
         size_t zrl{ 0xF0 };  // ZRL RRRRSSSS code (run of 16 zeros)
 
@@ -582,7 +584,7 @@ namespace JPEG
     DU_Array<double> convert_to_DU_Array(const Array_2d<double>& array_2d, const Comp_Info& comp_info)
     {   
         // Number of data units
-        const size_t N_du{ array_2d.size() / 64 };
+        const size_t N_du{ array_2d.size() / du_size };
         // Width of array_2d in units of data untis
         const size_t width_du{ array_2d.shape()[1] / du_width };
 
