@@ -263,7 +263,7 @@ namespace JPEG
     /// @param V Vertical sampling factor
     /// @param H Horizontal sampling factor
     /// @return A new Array_2d that satisfies the width and height requirements
-    Array_2d<double> enlarge_component(const Array_2d<double> orig_comp, unsigned int V, unsigned int H);
+    Array_2d<double> enlarge_component(const Array_2d<double>& orig_comp, unsigned int V, unsigned int H);
 }
 
 #endif

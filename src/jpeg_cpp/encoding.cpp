@@ -667,7 +667,7 @@ namespace JPEG
         return encoded_image;
     }
 
-    Array_2d<double> enlarge_component(const Array_2d<double> orig_comp, unsigned int V, unsigned int H)
+    Array_2d<double> enlarge_component(const Array_2d<double>& orig_comp, unsigned int V, unsigned int H)
     {
         const size_t cur_height{ orig_comp.shape()[0] }, cur_width{ orig_comp.shape()[1] };
         // Size of MCU in units of samples
