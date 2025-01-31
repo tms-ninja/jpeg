@@ -12,17 +12,6 @@
 #include "jpeg_cpp/array.h"
 #include "jpeg_cpp/jpeg.h"
 
-float square(float x) { return x * x; }
-
-static PyObject *square_wrapper(PyObject *self, PyObject *args) {
-    float input, result;
-    if (!PyArg_ParseTuple(args, "f", &input)) {
-    return NULL;
-    }
-    result = square(input);
-    return PyFloat_FromDouble(result);
-}
-
 int convert_numpy_to_array_2d(PyObject* obj, JPEG::Array_2d<double>& array_2d)
 {
     // Check it is a numpy array
@@ -140,7 +129,6 @@ static PyObject *encode_greyscale(PyObject *self, PyObject *args) {
 }
 
 static PyMethodDef jpeg_methods[] = {
-    {"square", square_wrapper, METH_VARARGS, "Square function"},
     {"encode_greyscale", encode_greyscale, METH_VARARGS, "Encodes a greyscale image"},
     {NULL, NULL, 0, NULL}
 };
