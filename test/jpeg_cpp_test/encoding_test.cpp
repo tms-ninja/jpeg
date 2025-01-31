@@ -125,7 +125,8 @@ TEST_CASE( "apply_level_shift()::level shift values in DU_Array", "[apply_level_
     {
         double expected{ static_cast<double>(ind) - 128.0 };
         
-        REQUIRE_THAT( array[ind], WithinRel(expected) );
+        CAPTURE( ind );
+        CHECK_THAT( array[ind], WithinRel(expected) );
     }
 }
 
@@ -136,11 +137,11 @@ TEST_CASE( "load_DCT_matrix()::loads the correct matrix", "[load_DCT_matrix()]" 
     REQUIRE( array.shape()[1] == 8 );
     
     // Check a selection of values
-    REQUIRE_THAT( array(0, 0), WithinRel(0.5) );
-    REQUIRE_THAT( array(0, 1), WithinRel(0.4903926402016152) );
-    REQUIRE_THAT( array(1, 0), WithinRel(0.5) );
-    REQUIRE_THAT( array(3, 4), WithinRel(0.3535533905932737) );
-    REQUIRE_THAT( array(7, 2), WithinRel(0.4619397662556433) );
+    CHECK_THAT( array(0, 0), WithinRel(0.5) );
+    CHECK_THAT( array(0, 1), WithinRel(0.4903926402016152) );
+    CHECK_THAT( array(1, 0), WithinRel(0.5) );
+    CHECK_THAT( array(3, 4), WithinRel(0.3535533905932737) );
+    CHECK_THAT( array(7, 2), WithinRel(0.4619397662556433) );
 }
 
 TEST_CASE( "load_DCT_matrix_transpose()::loads the correct matrix", "[load_DCT_matrix_transpose()]" ) {
@@ -150,11 +151,11 @@ TEST_CASE( "load_DCT_matrix_transpose()::loads the correct matrix", "[load_DCT_m
     REQUIRE( array.shape()[1] == 8 );
     
     // Check a selection of values
-    REQUIRE_THAT( array(0, 0), WithinRel(0.5) );
-    REQUIRE_THAT( array(0, 1), WithinRel(0.5) );
-    REQUIRE_THAT( array(1, 0), WithinRel(0.4903926402016152) );
-    REQUIRE_THAT( array(3, 4), WithinRel(0.2777851165098009) );
-    REQUIRE_THAT( array(7, 2), WithinRel(0.4157348061512727) );
+    CHECK_THAT( array(0, 0), WithinRel(0.5) );
+    CHECK_THAT( array(0, 1), WithinRel(0.5) );
+    CHECK_THAT( array(1, 0), WithinRel(0.4903926402016152) );
+    CHECK_THAT( array(3, 4), WithinRel(0.2777851165098009) );
+    CHECK_THAT( array(7, 2), WithinRel(0.4157348061512727) );
 }
 
 TEST_CASE( "mat_mul()::multiplies matrices correctly", "[mat_mul()]" ) {
@@ -198,7 +199,8 @@ TEST_CASE( "mat_mul()::multiplies matrices correctly", "[mat_mul()]" ) {
 
     for (size_t ind = 0; ind < actual_result.size(); ind++)
     {
-        REQUIRE_THAT( actual_result[ind], WithinRel(expected_result[ind]) );
+        CAPTURE( ind );
+        CHECK_THAT( actual_result[ind], WithinRel(expected_result[ind]) );
     }
 }
 
@@ -225,8 +227,10 @@ TEST_CASE( "apply_DCT()::applies correct transform to a single data unit", "[app
     // Verify the DCT was performed correctly
     for (size_t ind = 0; ind < input_array.size(); ind++)
     {
+        CAPTURE( ind );
+
         // Note sure why some seem so off, increase the tolerance for now
-        REQUIRE_THAT( input_array[ind], WithinRel(expected_result[ind], 1e-12) );
+        CHECK_THAT( input_array[ind], WithinRel(expected_result[ind], 1e-12) );
     }
 }
 
@@ -265,8 +269,10 @@ TEST_CASE( "apply_DCT()::applies correct transform to multiple data units", "[ap
     // Verify the DCT was performed correctly
     for (size_t ind = 0; ind < input_array.size(); ind++)
     {
+        CAPTURE( ind );
+
         // Note sure why some seem so off, increase the tolerance for now
-        REQUIRE_THAT( input_array[ind], WithinRel(expected_result[ind], 1e-12) );
+        CHECK_THAT( input_array[ind], WithinRel(expected_result[ind], 1e-12) );
     }
 }
 
@@ -294,7 +300,8 @@ TEST_CASE( "apply_quantization()::correctly quantizes a single data unit", "[app
     // Verify quantization was performed correctly
     for (size_t ind = 0; ind < input_array.size(); ind++)
     {
-        REQUIRE_THAT( input_array[ind], WithinRel(expected_result[ind]) );
+        CAPTURE( ind );
+        CHECK_THAT( input_array[ind], WithinRel(expected_result[ind]) );
     }
 }
 
@@ -334,7 +341,8 @@ TEST_CASE( "apply_quantization()::correctly quantizes multiple data units", "[ap
     // Verify quantization was performed correctly
     for (size_t ind = 0; ind < input_array.size(); ind++)
     {
-        REQUIRE_THAT( input_array[ind], WithinRel(expected_result[ind]) );
+        CAPTURE( ind );
+        CHECK_THAT( input_array[ind], WithinRel(expected_result[ind]) );
     }
 }
 
@@ -346,7 +354,7 @@ TEST_CASE( "compute_ssss()::computes the ssss value of a number", "[compute_ssss
         unsigned int expected_result{ 0 };
         unsigned int actual_result{ compute_ssss(n) };
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "n = 1")
     {
@@ -354,7 +362,7 @@ TEST_CASE( "compute_ssss()::computes the ssss value of a number", "[compute_ssss
         unsigned int expected_result{ 1 };
         unsigned int actual_result{ compute_ssss(n) };
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "n = 4")
     {
@@ -362,7 +370,7 @@ TEST_CASE( "compute_ssss()::computes the ssss value of a number", "[compute_ssss
         unsigned int expected_result{ 3 };
         unsigned int actual_result{ compute_ssss(n) };
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "n = 5")
     {
@@ -370,7 +378,7 @@ TEST_CASE( "compute_ssss()::computes the ssss value of a number", "[compute_ssss
         unsigned int expected_result{ 3 };
         unsigned int actual_result{ compute_ssss(n) };
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "n = 7")
     {
@@ -378,7 +386,7 @@ TEST_CASE( "compute_ssss()::computes the ssss value of a number", "[compute_ssss
         unsigned int expected_result{ 3 };
         unsigned int actual_result{ compute_ssss(n) };
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "n = 1024")
     {
@@ -386,7 +394,7 @@ TEST_CASE( "compute_ssss()::computes the ssss value of a number", "[compute_ssss
         unsigned int expected_result{ 11 };
         unsigned int actual_result{ compute_ssss(n) };
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "n = 2047")
     {
@@ -394,14 +402,14 @@ TEST_CASE( "compute_ssss()::computes the ssss value of a number", "[compute_ssss
         unsigned int expected_result{ 11 };
         unsigned int actual_result{ compute_ssss(n) };
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "n = 2048")
     {
         // Expect this to throw an invalid argument exception
         unsigned int n{ 2048 };
 
-        REQUIRE_THROWS_AS( compute_ssss(n), std::invalid_argument );
+        CHECK_THROWS_AS( compute_ssss(n), std::invalid_argument );
     }
 }
 
@@ -416,7 +424,7 @@ TEST_CASE( "encode_DC_coeff()::encodes a DC coefficient correctly", "[encode_DC_
         
         encode_DC_coeff(actual_result, diff, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "diff = 1")
     {
@@ -425,7 +433,7 @@ TEST_CASE( "encode_DC_coeff()::encodes a DC coefficient correctly", "[encode_DC_
         
         encode_DC_coeff(actual_result, diff, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "diff = -1")
     {
@@ -434,7 +442,7 @@ TEST_CASE( "encode_DC_coeff()::encodes a DC coefficient correctly", "[encode_DC_
         
         encode_DC_coeff(actual_result, diff, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "diff = 2")
     {
@@ -443,7 +451,7 @@ TEST_CASE( "encode_DC_coeff()::encodes a DC coefficient correctly", "[encode_DC_
         
         encode_DC_coeff(actual_result, diff, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "diff = -2")
     {
@@ -452,7 +460,7 @@ TEST_CASE( "encode_DC_coeff()::encodes a DC coefficient correctly", "[encode_DC_
         
         encode_DC_coeff(actual_result, diff, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "diff = 5")
     {
@@ -461,7 +469,7 @@ TEST_CASE( "encode_DC_coeff()::encodes a DC coefficient correctly", "[encode_DC_
         
         encode_DC_coeff(actual_result, diff, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "diff = -5")
     {
@@ -470,7 +478,7 @@ TEST_CASE( "encode_DC_coeff()::encodes a DC coefficient correctly", "[encode_DC_
         
         encode_DC_coeff(actual_result, diff, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "diff = 2047")
     {
@@ -479,7 +487,7 @@ TEST_CASE( "encode_DC_coeff()::encodes a DC coefficient correctly", "[encode_DC_
         
         encode_DC_coeff(actual_result, diff, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "diff = -2047")
     {
@@ -488,7 +496,7 @@ TEST_CASE( "encode_DC_coeff()::encodes a DC coefficient correctly", "[encode_DC_
         
         encode_DC_coeff(actual_result, diff, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
 }
 
@@ -504,7 +512,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 0", "[encode_AC_coef
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "rrrr = 0, coeff = -1")
     {
@@ -513,7 +521,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 0", "[encode_AC_coef
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "rrrr = 0, coeff = 2")
     {
@@ -522,7 +530,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 0", "[encode_AC_coef
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "rrrr = 0, coeff = -2")
     {
@@ -531,7 +539,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 0", "[encode_AC_coef
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "rrrr = 0, coeff = 5")
     {
@@ -540,7 +548,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 0", "[encode_AC_coef
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "rrrr = 0, coeff = -5")
     {
@@ -549,7 +557,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 0", "[encode_AC_coef
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
 
     // Note maximum ssss for AC coefficients is 10, unlike for DC coefficients where it's 11
@@ -560,7 +568,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 0", "[encode_AC_coef
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "rrrr = 0, coeff = -1023")
     {
@@ -569,7 +577,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 0", "[encode_AC_coef
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
 }
 
@@ -585,7 +593,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 5", "[encode_AC_coef
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "rrrr = 5, coeff = -1")
     {
@@ -594,7 +602,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 5", "[encode_AC_coef
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "rrrr = 5, coeff = 2")
     {
@@ -603,7 +611,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 5", "[encode_AC_coef
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "rrrr = 5, coeff = -2")
     {
@@ -612,7 +620,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 5", "[encode_AC_coef
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "rrrr = 5, coeff = 5")
     {
@@ -621,7 +629,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 5", "[encode_AC_coef
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "rrrr = 5, coeff = -5")
     {
@@ -630,7 +638,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 5", "[encode_AC_coef
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
 
     // Note maximum ssss for AC coefficients is 10, unlike for DC coefficients where it's 11
@@ -641,7 +649,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 5", "[encode_AC_coef
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "rrrr = 5, coeff = -1023")
     {
@@ -650,7 +658,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 5", "[encode_AC_coef
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
 }
 
@@ -666,7 +674,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 15", "[encode_AC_coe
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "rrrr = 15, coeff = -1")
     {
@@ -675,7 +683,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 15", "[encode_AC_coe
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "rrrr = 15, coeff = 2")
     {
@@ -684,7 +692,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 15", "[encode_AC_coe
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "rrrr = 15, coeff = -2")
     {
@@ -693,7 +701,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 15", "[encode_AC_coe
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "rrrr = 15, coeff = 5")
     {
@@ -702,7 +710,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 15", "[encode_AC_coe
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "rrrr = 15, coeff = -5")
     {
@@ -711,7 +719,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 15", "[encode_AC_coe
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
 
     // Note maximum ssss for AC coefficients is 10, unlike for DC coefficients where it's 11
@@ -722,7 +730,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 15", "[encode_AC_coe
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "rrrr = 15, coeff = -1023")
     {
@@ -731,7 +739,7 @@ TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 15", "[encode_AC_coe
         
         encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
 }
 
@@ -756,7 +764,7 @@ TEST_CASE( "encode_AC_coeffs()::all entries the same", "[encode_AC_coeffs()]" ) 
 
         encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "all entries 1") {
         DU_Array<double> input_array{{
@@ -838,7 +846,7 @@ TEST_CASE( "encode_AC_coeffs()::all entries the same", "[encode_AC_coeffs()]" ) 
 
         encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
     SECTION( "all entries 1") {
         DU_Array<double> input_array{{
@@ -920,7 +928,7 @@ TEST_CASE( "encode_AC_coeffs()::all entries the same", "[encode_AC_coeffs()]" ) 
 
         encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
 
-        REQUIRE( actual_result == expected_result );
+        CHECK( actual_result == expected_result );
     }
 }
 
@@ -952,7 +960,7 @@ TEST_CASE( "encode_AC_coeffs()::zig-zag ordering", "[encode_AC_coeffs()]" ) {
 
     encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
 
-    REQUIRE( actual_result == expected_result );
+    CHECK( actual_result == expected_result );
 }
 
 TEST_CASE( "encode_AC_coeffs()::run of 1 zero", "[encode_AC_coeffs()]" ) {
@@ -980,7 +988,7 @@ TEST_CASE( "encode_AC_coeffs()::run of 1 zero", "[encode_AC_coeffs()]" ) {
 
     encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
 
-    REQUIRE( actual_result == expected_result );
+    CHECK( actual_result == expected_result );
 }
 
 TEST_CASE( "encode_AC_coeffs()::run of 5 zeros", "[encode_AC_coeffs()]" ) {
@@ -1008,7 +1016,7 @@ TEST_CASE( "encode_AC_coeffs()::run of 5 zeros", "[encode_AC_coeffs()]" ) {
 
     encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
 
-    REQUIRE( actual_result == expected_result );
+    CHECK( actual_result == expected_result );
 }
 
 TEST_CASE( "encode_AC_coeffs()::run of 15 zeros", "[encode_AC_coeffs()]" ) {
@@ -1036,7 +1044,7 @@ TEST_CASE( "encode_AC_coeffs()::run of 15 zeros", "[encode_AC_coeffs()]" ) {
 
     encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
 
-    REQUIRE( actual_result == expected_result );
+    CHECK( actual_result == expected_result );
 }
 
 TEST_CASE( "encode_AC_coeffs()::run of 16 zeros", "[encode_AC_coeffs()]" ) {
@@ -1065,7 +1073,7 @@ TEST_CASE( "encode_AC_coeffs()::run of 16 zeros", "[encode_AC_coeffs()]" ) {
 
     encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
 
-    REQUIRE( actual_result == expected_result );
+    CHECK( actual_result == expected_result );
 }
 
 TEST_CASE( "encode_AC_coeffs()::run of 17 zeros", "[encode_AC_coeffs()]" ) {
@@ -1094,7 +1102,7 @@ TEST_CASE( "encode_AC_coeffs()::run of 17 zeros", "[encode_AC_coeffs()]" ) {
 
     encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
 
-    REQUIRE( actual_result == expected_result );
+    CHECK( actual_result == expected_result );
 }
 
 TEST_CASE( "encode_AC_coeffs()::run of 32 zeros", "[encode_AC_coeffs()]" ) {
@@ -1124,7 +1132,7 @@ TEST_CASE( "encode_AC_coeffs()::run of 32 zeros", "[encode_AC_coeffs()]" ) {
 
     encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
 
-    REQUIRE( actual_result == expected_result );
+    CHECK( actual_result == expected_result );
 }
 
 TEST_CASE( "encode_data_unit_sequential()::encode sample data unit", "[encode_data_unit_sequential()]" ) {
@@ -1173,7 +1181,7 @@ TEST_CASE( "encode_data_unit_sequential()::encode sample data unit", "[encode_da
 
     encode_data_unit_sequential(actual_result, input_array, du_ind, prev_dc, huff_dc, huff_ac);
 
-    REQUIRE( actual_result == expected_result );
+    CHECK( actual_result == expected_result );
 }
 
 TEST_CASE( "append_q_table_marker_segment()::single quantization table", "[append_q_table_marker_segment()]" ) {
@@ -1255,7 +1263,7 @@ TEST_CASE( "append_q_table_marker_segment()::single quantization table", "[appen
     std::vector<unsigned char> actual_result{};
     append_q_table_marker_segment(actual_result, q_tables, destination_indices);
 
-    REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
+    CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
 
 TEST_CASE( "append_q_table_marker_segment()::two quantization table", "[append_q_table_marker_segment()]" ) {
@@ -1417,7 +1425,7 @@ TEST_CASE( "append_q_table_marker_segment()::two quantization table", "[append_q
     std::vector<unsigned char> actual_result{};
     append_q_table_marker_segment(actual_result, q_tables, destination_indices);
 
-    REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
+    CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
 
 TEST_CASE( "append_huff_table_marker_segment()::one Huffman table", "[append_huff_table_marker_segment()]" ) {
@@ -1466,7 +1474,7 @@ TEST_CASE( "append_huff_table_marker_segment()::one Huffman table", "[append_huf
 
     append_huff_table_marker_segment(actual_result, huff_tables);
 
-    REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
+    CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
 
 TEST_CASE( "append_huff_table_marker_segment()::two Huffman tables", "[append_huff_table_marker_segment()]" ) {
@@ -1549,7 +1557,7 @@ TEST_CASE( "append_huff_table_marker_segment()::two Huffman tables", "[append_hu
 
     append_huff_table_marker_segment(actual_result, huff_tables);
 
-    REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
+    CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
 
 TEST_CASE( "append_mcu()::single component", "[append_mcu()]" ) {
@@ -1649,7 +1657,7 @@ TEST_CASE( "append_mcu()::single component", "[append_mcu()]" ) {
         append_mcu(actual_result, prev_dc, du_ind, input_array, comp_info, huff_dc, huff_ac);
     }
 
-    REQUIRE( actual_result == expected_result );
+    CHECK( actual_result == expected_result );
 }
 
 TEST_CASE( "append_mcu()::multiple components", "[append_mcu()]" ) {
@@ -1794,7 +1802,7 @@ TEST_CASE( "append_mcu()::multiple components", "[append_mcu()]" ) {
     // Append the MCU
     append_mcu(actual_result, prev_dc, du_ind, input_array, comp_info, huff_dc, huff_ac);
 
-    REQUIRE( actual_result == expected_result );
+    CHECK( actual_result == expected_result );
 }
 
 TEST_CASE( "append_scan_header()::single component", "[append_scan_header()]" ) {
@@ -1823,7 +1831,7 @@ TEST_CASE( "append_scan_header()::single component", "[append_scan_header()]" ) 
 
     append_scan_header(actual_result, comp_infos);
 
-    REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
+    CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
 
 TEST_CASE( "append_scan_header()::multiple components", "[append_scan_header()]" ) {
@@ -1860,7 +1868,7 @@ TEST_CASE( "append_scan_header()::multiple components", "[append_scan_header()]"
 
     append_scan_header(actual_result, comp_infos);
 
-    REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
+    CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
 
 TEST_CASE( "append_frame_header()::single component", "[append_frame_header()]" ) {
@@ -1892,7 +1900,7 @@ TEST_CASE( "append_frame_header()::single component", "[append_frame_header()]" 
 
     append_frame_header(actual_result, image_height, image_width, comp_infos);
 
-    REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
+    CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
 
 TEST_CASE( "append_frame_header()::multiple components", "[append_frame_header()]" ) {
@@ -1934,7 +1942,7 @@ TEST_CASE( "append_frame_header()::multiple components", "[append_frame_header()
 
     append_frame_header(actual_result, image_height, image_width, comp_infos);
 
-    REQUIRE_THAT( actual_result, RangeEquals(expected_result) );
+    CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
 
 TEST_CASE( "convert_to_DU_Array()::H=1, V=1", "[convert_to_DU_Array()]" ) {
@@ -2116,7 +2124,8 @@ TEST_CASE( "convert_to_DU_Array()::H=1, V=1", "[convert_to_DU_Array()]" ) {
 
     for (size_t ind = 0; ind < expected_result.size(); ind++)
     {
-        REQUIRE( actual_result[ind] == expected_result[ind] );
+        CAPTURE( ind );
+        CHECK( actual_result[ind] == expected_result[ind] );
     }
 }
 
@@ -2294,12 +2303,12 @@ TEST_CASE( "convert_to_DU_Array()::H=2, V=1", "[convert_to_DU_Array()]" ) {
 
     DU_Array actual_result{ convert_to_DU_Array(input_array, comp_info) };
 
-
     REQUIRE( actual_result.size() == expected_result.size() );
 
     for (size_t ind = 0; ind < expected_result.size(); ind++)
     {
-        REQUIRE( actual_result[ind] == expected_result[ind] );
+        CAPTURE( ind );
+        CHECK( actual_result[ind] == expected_result[ind] );
     }
 }
 
@@ -2486,7 +2495,8 @@ TEST_CASE( "convert_to_DU_Array()::H=1, V=2", "[convert_to_DU_Array()]" ) {
 
     for (size_t ind = 0; ind < expected_result.size(); ind++)
     {
-        REQUIRE( actual_result[ind] == expected_result[ind] );
+        CAPTURE( ind );
+        CHECK( actual_result[ind] == expected_result[ind] );
     }
 }
 
@@ -2668,7 +2678,8 @@ TEST_CASE( "convert_to_DU_Array()::H=2, V=2", "[convert_to_DU_Array()]" ) {
 
     for (size_t ind = 0; ind < expected_result.size(); ind++)
     {
-        REQUIRE( actual_result[ind] == expected_result[ind] );
+        CAPTURE( ind );
+        CHECK( actual_result[ind] == expected_result[ind] );
     }
 }
 
@@ -2685,7 +2696,8 @@ TEST_CASE( "enlarge_component()::8x8 H=1, V=1", "[enlarge_component()]" ) {
 
     for (size_t ind = 0; ind < expected_result.size(); ind++)
     {
-        REQUIRE( actual_result[ind] == expected_result[ind] );
+        CAPTURE( ind );
+        CHECK( actual_result[ind] == expected_result[ind] );
     }
 }
 
@@ -2718,7 +2730,8 @@ TEST_CASE( "enlarge_component()::8x8 H=2, V=2", "[enlarge_component()]" ) {
 
     for (size_t ind = 0; ind < expected_result.size(); ind++)
     {
-        REQUIRE( actual_result[ind] == expected_result[ind] );
+        CAPTURE( ind );
+        CHECK( actual_result[ind] == expected_result[ind] );
     }
 }
 
@@ -2743,7 +2756,8 @@ TEST_CASE( "enlarge_component()::2x3 H=1, V=1", "[enlarge_component()]" ) {
 
     for (size_t ind = 0; ind < expected_result.size(); ind++)
     {
-        REQUIRE( actual_result[ind] == expected_result[ind] );
+        CAPTURE( ind );
+        CHECK( actual_result[ind] == expected_result[ind] );
     }
 }
 

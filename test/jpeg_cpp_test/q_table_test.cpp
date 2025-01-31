@@ -36,7 +36,8 @@ TEST_CASE( "Q_Table::construction of Q_Tables", "[Q_Table]" ) {
 
         for (size_t ind = 0; ind < expected_size; ind++)
         {
-            REQUIRE( q_table_actual[ind] == ind );
+            CAPTURE( ind );
+            CHECK( q_table_actual[ind] == ind );
         }
     }
 }

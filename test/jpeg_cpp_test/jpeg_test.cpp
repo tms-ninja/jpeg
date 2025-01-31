@@ -65,7 +65,8 @@ TEST_CASE( "encode_greyscale_image()::markers appear in correct order", "[encode
             }
 
             // Ensure it's one of the expected markers
-            REQUIRE_THAT( expected_markers, Contains(cur_byte) );
+            CAPTURE( ind );
+            CHECK_THAT( expected_markers, Contains(cur_byte) );
 
             // Check for SOF0 and SOS
             if (cur_byte==0xC0)
@@ -75,7 +76,7 @@ TEST_CASE( "encode_greyscale_image()::markers appear in correct order", "[encode
             else if (cur_byte==0xDA)
             {
                 // SOS marker, must follow a SOF marker
-                REQUIRE( found_SOF );
+                CHECK( found_SOF );
             }
         }
     }
