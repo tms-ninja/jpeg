@@ -13,6 +13,11 @@ namespace JPEG
         out.push_back(static_cast<unsigned char>((high << 4) | low));
     }
 
+    void append_marker(std::vector<unsigned char>& out, Marker marker)
+    {
+        append_two_bytes(out, static_cast<unsigned long long>(marker));
+    }
+
     void apply_level_shift(DU_Array<double> &array)
     {
         for (size_t ind = 0; ind < array.size(); ind++)
@@ -276,8 +281,7 @@ namespace JPEG
         assert("Number of quantization tables and destination indices must be the same" && q_tables.size()==destination_indices.size());
 
         // Append quantization table marker, 0xFFDB, most significant byte first
-        out.push_back(0xFF);
-        out.push_back(0xDB);
+        append_marker(out, Marker::Define_Quantization_Table);
 
         // Now determine the length of the marker segment
         size_t length{ 2 + 65 * q_tables.size() };
@@ -406,8 +410,7 @@ namespace JPEG
     void append_huff_table_marker_segment(std::vector<unsigned char>& out, std::vector<Huff_Table_Ref> tables)
     {
         // Append the DHT marker
-        out.push_back(0xFF);
-        out.push_back(0xC4);
+        append_marker(out, Marker::Define_Huffman_Table);
 
         // Next comes the length of the table segment but we don't know that yet
         // So record the index of where the length should go and push two bytes
@@ -430,8 +433,7 @@ namespace JPEG
     void append_scan_header(std::vector<unsigned char>& out, const std::vector<Comp_Info>& comp_infos)
     {
         // Append Start Of Scan marker
-        out.push_back(0xFF);
-        out.push_back(0xDA);
+        append_marker(out, Marker::Start_Of_Scan);
 
         // Determine length
         unsigned int scan_header_length{ 6 + 2 * static_cast<unsigned int>(comp_infos.size()) };
@@ -471,8 +473,7 @@ namespace JPEG
         const std::vector<Comp_Info>& comp_infos)
     {
         // Append Start Of Frame 0 marker, corresponds to baseline DCT
-        out.push_back(0xFF);
-        out.push_back(0xC0);
+        append_marker(out, Marker::Start_Of_Frame_0_Baseline_DCT);
 
         // Length of frame header
         unsigned int frame_header_length{ 8 + 3 * static_cast<unsigned int>(comp_infos.size()) };
@@ -655,15 +656,13 @@ namespace JPEG
         // First apply the start of image marker, FFD8
         std::vector<unsigned char> encoded_image;
 
-        encoded_image.push_back(0xFF);
-        encoded_image.push_back(0xD8);
+        append_marker(encoded_image, Marker::Start_Of_Image);
 
         // Append the encoded frame
         encode_frame(encoded_image, Y, X, du_arrays, comp_infos, dc_tables, ac_tables, q_tables);
 
         // Lastly append the end of image marker, FFD9
-        encoded_image.push_back(0xFF);
-        encoded_image.push_back(0xD9);
+        append_marker(encoded_image, Marker::End_Of_Image);
 
         return encoded_image;
     }
