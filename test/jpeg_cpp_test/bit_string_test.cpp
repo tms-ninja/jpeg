@@ -6,6 +6,48 @@
 
 using namespace JPEG;
 
+TEST_CASE( "Bit_String::byte iteration - integer bytes", "[Bit_String]" ) {
+    Bit_String bs{ "1001010101100111" };
+    std::vector<unsigned char> expected_result{
+        0b10010101, 0b01100111
+    };
+
+    size_t ind{ 0 };
+
+    for (auto byte_ptr=bs.begin_bytes(); byte_ptr!=bs.end_bytes(); ++byte_ptr)
+    {
+        // Double check we haven't gotten more bytes that we expected
+        REQUIRE( ind < expected_result.size() );
+        CHECK( *byte_ptr == expected_result[ind] );
+
+        ind++;
+    }
+
+    // Double check we got all the bytes we expected
+    CHECK( ind == expected_result.size() );
+}
+
+TEST_CASE( "Bit_String::byte iteration - non-intger bytes", "[Bit_String]" ) {
+    Bit_String bs{ "1001010101100" };
+    std::vector<unsigned char> expected_result{
+        0b10010101, 0b01100000
+    };
+
+    size_t ind{ 0 };
+
+    for (auto byte_ptr=bs.begin_bytes(); byte_ptr!=bs.end_bytes(); ++byte_ptr)
+    {
+        // Double check we haven't gotten more bytes that we expected
+        REQUIRE( ind < expected_result.size() );
+        CHECK( *byte_ptr == expected_result[ind] );
+
+        ind++;
+    }
+
+    // Double check we got all the bytes we expected
+    CHECK( ind == expected_result.size() );
+}
+
 TEST_CASE( "Bit_String::equality of Bit_Strings", "[Bit_String]" ) {
     Bit_String bs1{ 10 };
 

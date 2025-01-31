@@ -49,6 +49,15 @@ namespace JPEG {
         /// @param size Number of bits of the new Bit_String
         Bit_String(size_t size);
 
+        /// @brief Iterator to the first byte in the Bit_String. If the Bit_String does not represent an
+        /// integer number of bytes, the least significant bits of the last byte are padded with zeros.
+        /// @return Iterator to the first byte in the Bit_String
+        unsigned char* begin_bytes() { return buffer.data(); }
+
+        /// @brief Iterator to one past the last byte in the Bit_String
+        /// @return Iterator to one past the last byte in the Bit_String
+        unsigned char* end_bytes() { return buffer.data()+buffer.size(); }
+
         /// @brief Creates a Bit_String from a string
         /// @param s String containing '0' and '1'
         /// @return New Bit_String
