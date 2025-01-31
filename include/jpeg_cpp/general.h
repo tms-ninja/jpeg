@@ -9,6 +9,10 @@ namespace JPEG
         Luminance,
         Chrominance
     };
+
+    // Width and height of a data unit
+    constexpr unsigned int du_width{ 8 };
+    constexpr unsigned int du_height{ 8 };
 }
 
 #endif

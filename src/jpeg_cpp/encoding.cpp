@@ -281,8 +281,6 @@ namespace JPEG
         size_t length{ 2 + 65 * q_tables.size() };
 
         append_two_bytes(out, length);
-        // out.push_back(length >> 8);
-        // out.push_back(0xFF & length);
 
         // Now append each table in turn
         for (size_t table_ind = 0; table_ind < q_tables.size(); table_ind++)
@@ -524,7 +522,7 @@ namespace JPEG
         }
 
         // Now need to add padding if necessary and then perform byte stuffing
-        while (bs.size() % 8 != 0)
+        while (bs.size() % CHAR_BIT != 0)
         {
             bs.append_bit(1);
         }
@@ -586,7 +584,7 @@ namespace JPEG
         // Number of data units
         const size_t N_du{ array_2d.size() / 64 };
         // Width of array_2d in units of data untis
-        const size_t width_du{ array_2d.shape()[1] / 8 };
+        const size_t width_du{ array_2d.shape()[1] / du_width };
 
         const size_t H{ comp_info.H }, V{ comp_info.V };
 
@@ -608,12 +606,12 @@ namespace JPEG
             const size_t du_j{ mcu_j + offset % H };
 
             // Indices in array_2d of the data unit we're copying
-            const size_t i_begin{ 8*du_i };
-            const size_t j_begin{ 8*du_j };
+            const size_t i_begin{ du_height*du_i };
+            const size_t j_begin{ du_width*du_j };
 
-            for (size_t i = 0; i < 8; i++)
+            for (size_t i = 0; i < du_height; i++)
             {
-                for (size_t j = 0; j < 8; j++)
+                for (size_t j = 0; j < du_width; j++)
                 {
                     du_array(ind, i, j) = array_2d(i_begin+i, j_begin+j);
                 }
@@ -671,7 +669,8 @@ namespace JPEG
     Array_2d<double> enlarge_component(const Array_2d<double> orig_comp, unsigned int V, unsigned int H)
     {
         const size_t cur_height{ orig_comp.shape()[0] }, cur_width{ orig_comp.shape()[1] };
-        const size_t mcu_height{ 8*V }, mcu_width{ 8*H };
+        // Size of MCU in units of samples
+        const size_t mcu_height{ du_height*V }, mcu_width{ du_width*H };
 
         // The height/width of the enlarged component
         const size_t required_height{ cur_height % mcu_height ? (1+cur_height/mcu_height)*mcu_height : cur_height };
