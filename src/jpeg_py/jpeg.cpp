@@ -128,8 +128,8 @@ static PyObject *encode_greyscale(PyObject *self, PyObject *args) {
         return nullptr;
     }
 
-    // Initalize to something temporary for now
-    JPEG::Array_2d<double> array_2d{ 1, 1 };
+    
+    JPEG::Array_2d<double> array_2d;
 
     if (convert_numpy_to_array_2d(np_array, array_2d))
     {
