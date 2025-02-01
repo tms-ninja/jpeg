@@ -35,7 +35,7 @@ namespace JPEG {
     Bit_String::Bit_String(size_t size)
     : buffer_size{ size }
     {
-        buffer.resize(size/bits_per_char + (size % bits_per_char > 0));
+        buffer.resize(size/CHAR_BIT + (size % CHAR_BIT > 0));
     }
 
     Bit_String::Bit_String(const std::string& s)
@@ -73,14 +73,14 @@ namespace JPEG {
 
     Bit_Ref Bit_String::operator[](size_t ind)
     {
-        size_t byte_offset{ ind / bits_per_char }, bit_offset{ ind % bits_per_char };
+        size_t byte_offset{ ind / CHAR_BIT }, bit_offset{ ind % CHAR_BIT };
 
         return Bit_Ref(buffer[byte_offset], bit_offset);
     }
 
     bool Bit_String::operator[](size_t ind) const
     {
-        size_t byte_offset{ ind / bits_per_char }, bit_offset{ ind % bits_per_char };
+        size_t byte_offset{ ind / CHAR_BIT }, bit_offset{ ind % CHAR_BIT };
         size_t bit_selector{ MSB_selector >> bit_offset };
 
         return (buffer[byte_offset] & bit_selector);// >> (bits_per_char-bit_offset-1);
@@ -130,7 +130,7 @@ namespace JPEG {
     void Bit_String::append_bit(bool bit)
     {
         // check to see if we need to add a new unsigned char to the buffer
-        if (buffer_size % bits_per_char == 0)
+        if (buffer_size % CHAR_BIT == 0)
         {
             buffer.push_back(0u);
         }
@@ -156,17 +156,17 @@ namespace JPEG {
     void Bit_String::append_byte(unsigned char byte)
     {
         // Check to see if we can just append the byte
-        if (buffer_size % bits_per_char == 0)
+        if (buffer_size % CHAR_BIT == 0)
         {
             buffer.push_back(byte);
         
             // Don't forget to increment the number of bits
-            buffer_size += bits_per_char;
+            buffer_size += CHAR_BIT;
             return;
         }
 
         // Need to do one bit at a time
-        for (size_t bit_ind = 0; bit_ind < bits_per_char; ++bit_ind)
+        for (size_t bit_ind = 0; bit_ind < CHAR_BIT; ++bit_ind)
         {
             append_bit(byte & (MSB_selector >> bit_ind));
         }
@@ -175,7 +175,7 @@ namespace JPEG {
     void Bit_String::extend(const Bit_String& other_bs)
     {
         // If the size of this Bit_String is a multiple of 8, we can just extend the vector
-        if (buffer_size % bits_per_char == 0)
+        if (buffer_size % CHAR_BIT == 0)
         {
             for (auto byte: other_bs.buffer)
             {

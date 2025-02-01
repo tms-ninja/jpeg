@@ -42,6 +42,20 @@ namespace JPEG
     /// @param low Source of the 4 low bits, taken from the 4 low bits of low, most significant first
     void append_composite_byte(std::vector<unsigned char>& out, unsigned long long high, unsigned long long low);
 
+    enum class Marker {
+        Start_Of_Image = 0xFFD8,
+        End_Of_Image = 0xFFD9,
+        Define_Quantization_Table = 0xFFDB,
+        Define_Huffman_Table = 0xFFC4,
+        Start_Of_Frame_0_Baseline_DCT = 0xFFC0,
+        Start_Of_Scan = 0xFFDA,
+    };
+
+    /// @brief Appends the marker to the output
+    /// @param out Vector to append byte to
+    /// @param marker JPEG marker
+    void append_marker(std::vector<unsigned char>& out, Marker marker);
+
     /// @brief Applies the level shift of subtracting 128 to the array
     /// @param array Array to apply level shift to
     void apply_level_shift(DU_Array<double>& array);
@@ -249,7 +263,7 @@ namespace JPEG
     /// @param V Vertical sampling factor
     /// @param H Horizontal sampling factor
     /// @return A new Array_2d that satisfies the width and height requirements
-    Array_2d<double> enlarge_component(const Array_2d<double> orig_comp, unsigned int V, unsigned int H);
+    Array_2d<double> enlarge_component(const Array_2d<double>& orig_comp, unsigned int V, unsigned int H);
 }
 
 #endif

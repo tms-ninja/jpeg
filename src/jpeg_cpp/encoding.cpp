@@ -13,6 +13,11 @@ namespace JPEG
         out.push_back(static_cast<unsigned char>((high << 4) | low));
     }
 
+    void append_marker(std::vector<unsigned char>& out, Marker marker)
+    {
+        append_two_bytes(out, static_cast<unsigned long long>(marker));
+    }
+
     void apply_level_shift(DU_Array<double> &array)
     {
         for (size_t ind = 0; ind < array.size(); ind++)
@@ -78,16 +83,18 @@ namespace JPEG
     void apply_DCT(DU_Array<double> &array)
     {
         // Buffer to store the intermediate result of data unit*DCT matrix
-        std::array<double, 64> double_buffer;
+        std::array<double, du_size> double_buffer;
         const auto arr_shape{ array.shape() };
 
         for (size_t du_ind = 0; du_ind < arr_shape[0]; du_ind++)
         {
             // Compute data unit*DCT matrix
-            mat_mul(&array[du_ind*64], DCT_matrix.data(), &double_buffer[0], arr_shape[1]);
+            double* du_ptr{ &array[du_ind*du_size] };
+
+            mat_mul(du_ptr, DCT_matrix.data(), &double_buffer[0], arr_shape[1]);
 
             // Compute transpose(DCT matrix) * termporary
-            mat_mul(DCT_matrix_transpose.data(), &double_buffer[0], &array[du_ind*64], arr_shape[1]);
+            mat_mul(DCT_matrix_transpose.data(), &double_buffer[0], du_ptr, arr_shape[1]);
         }
     }
 
@@ -207,7 +214,7 @@ namespace JPEG
         const auto& zz{ zig_zag_order };
 
         // Pointer to the start of the data unit we are encoding
-        const double* du_ptr{ du_array.data() + du_ind*64 };
+        const double* du_ptr{ du_array.data() + du_ind*du_size};
         size_t end_of_block{ 0x00 };  // EOB RRRRSSSS code
         size_t zrl{ 0xF0 };  // ZRL RRRRSSSS code (run of 16 zeros)
 
@@ -274,15 +281,12 @@ namespace JPEG
         assert("Number of quantization tables and destination indices must be the same" && q_tables.size()==destination_indices.size());
 
         // Append quantization table marker, 0xFFDB, most significant byte first
-        out.push_back(0xFF);
-        out.push_back(0xDB);
+        append_marker(out, Marker::Define_Quantization_Table);
 
         // Now determine the length of the marker segment
         size_t length{ 2 + 65 * q_tables.size() };
 
         append_two_bytes(out, length);
-        // out.push_back(length >> 8);
-        // out.push_back(0xFF & length);
 
         // Now append each table in turn
         for (size_t table_ind = 0; table_ind < q_tables.size(); table_ind++)
@@ -406,8 +410,7 @@ namespace JPEG
     void append_huff_table_marker_segment(std::vector<unsigned char>& out, std::vector<Huff_Table_Ref> tables)
     {
         // Append the DHT marker
-        out.push_back(0xFF);
-        out.push_back(0xC4);
+        append_marker(out, Marker::Define_Huffman_Table);
 
         // Next comes the length of the table segment but we don't know that yet
         // So record the index of where the length should go and push two bytes
@@ -430,8 +433,7 @@ namespace JPEG
     void append_scan_header(std::vector<unsigned char>& out, const std::vector<Comp_Info>& comp_infos)
     {
         // Append Start Of Scan marker
-        out.push_back(0xFF);
-        out.push_back(0xDA);
+        append_marker(out, Marker::Start_Of_Scan);
 
         // Determine length
         unsigned int scan_header_length{ 6 + 2 * static_cast<unsigned int>(comp_infos.size()) };
@@ -471,8 +473,7 @@ namespace JPEG
         const std::vector<Comp_Info>& comp_infos)
     {
         // Append Start Of Frame 0 marker, corresponds to baseline DCT
-        out.push_back(0xFF);
-        out.push_back(0xC0);
+        append_marker(out, Marker::Start_Of_Frame_0_Baseline_DCT);
 
         // Length of frame header
         unsigned int frame_header_length{ 8 + 3 * static_cast<unsigned int>(comp_infos.size()) };
@@ -524,7 +525,7 @@ namespace JPEG
         }
 
         // Now need to add padding if necessary and then perform byte stuffing
-        while (bs.size() % 8 != 0)
+        while (bs.size() % CHAR_BIT != 0)
         {
             bs.append_bit(1);
         }
@@ -584,9 +585,9 @@ namespace JPEG
     DU_Array<double> convert_to_DU_Array(const Array_2d<double>& array_2d, const Comp_Info& comp_info)
     {   
         // Number of data units
-        const size_t N_du{ array_2d.size() / 64 };
+        const size_t N_du{ array_2d.size() / du_size };
         // Width of array_2d in units of data untis
-        const size_t width_du{ array_2d.shape()[1] / 8 };
+        const size_t width_du{ array_2d.shape()[1] / du_width };
 
         const size_t H{ comp_info.H }, V{ comp_info.V };
 
@@ -608,12 +609,12 @@ namespace JPEG
             const size_t du_j{ mcu_j + offset % H };
 
             // Indices in array_2d of the data unit we're copying
-            const size_t i_begin{ 8*du_i };
-            const size_t j_begin{ 8*du_j };
+            const size_t i_begin{ du_height*du_i };
+            const size_t j_begin{ du_width*du_j };
 
-            for (size_t i = 0; i < 8; i++)
+            for (size_t i = 0; i < du_height; i++)
             {
-                for (size_t j = 0; j < 8; j++)
+                for (size_t j = 0; j < du_width; j++)
                 {
                     du_array(ind, i, j) = array_2d(i_begin+i, j_begin+j);
                 }
@@ -655,23 +656,22 @@ namespace JPEG
         // First apply the start of image marker, FFD8
         std::vector<unsigned char> encoded_image;
 
-        encoded_image.push_back(0xFF);
-        encoded_image.push_back(0xD8);
+        append_marker(encoded_image, Marker::Start_Of_Image);
 
         // Append the encoded frame
         encode_frame(encoded_image, Y, X, du_arrays, comp_infos, dc_tables, ac_tables, q_tables);
 
         // Lastly append the end of image marker, FFD9
-        encoded_image.push_back(0xFF);
-        encoded_image.push_back(0xD9);
+        append_marker(encoded_image, Marker::End_Of_Image);
 
         return encoded_image;
     }
 
-    Array_2d<double> enlarge_component(const Array_2d<double> orig_comp, unsigned int V, unsigned int H)
+    Array_2d<double> enlarge_component(const Array_2d<double>& orig_comp, unsigned int V, unsigned int H)
     {
         const size_t cur_height{ orig_comp.shape()[0] }, cur_width{ orig_comp.shape()[1] };
-        const size_t mcu_height{ 8*V }, mcu_width{ 8*H };
+        // Size of MCU in units of samples
+        const size_t mcu_height{ du_height*V }, mcu_width{ du_width*H };
 
         // The height/width of the enlarged component
         const size_t required_height{ cur_height % mcu_height ? (1+cur_height/mcu_height)*mcu_height : cur_height };

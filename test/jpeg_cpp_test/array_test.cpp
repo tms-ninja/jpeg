@@ -24,7 +24,8 @@ TEST_CASE( "Array::construction of Arrays", "[Array]" ) {
 
         for (size_t i = 0; i < expected_size; i++)
         {
-            REQUIRE( arr_actual[i] == arr_expected[i] );
+            CAPTURE( i );
+            CHECK( arr_actual[i] == arr_expected[i] );
         }
     }
 }
@@ -44,7 +45,8 @@ TEST_CASE( "Array::resizing of Arrays", "[Array]" ) {
         // Check initial elements are preserved
         for (size_t ind = 0; ind < initial_size; ind++)
         {
-            REQUIRE( arr_actual[ind] == ind );
+            CAPTURE( ind );
+            CHECK( arr_actual[ind] == ind );
         }
     }
     SECTION( "can be resized smaller" ) {
@@ -58,7 +60,8 @@ TEST_CASE( "Array::resizing of Arrays", "[Array]" ) {
         // Check initial elements are preserved
         for (size_t ind = 0; ind < new_size; ind++)
         {
-            REQUIRE( arr_actual[ind] == ind );
+            CAPTURE( ind );
+            CHECK( arr_actual[ind] == ind );
         }
     }
     SECTION( "can be resized the same" ) {
@@ -72,7 +75,8 @@ TEST_CASE( "Array::resizing of Arrays", "[Array]" ) {
         // Check initial elements are preserved
         for (size_t ind = 0; ind < new_size; ind++)
         {
-            REQUIRE( arr_actual[ind] == ind );
+            CAPTURE( ind );
+            CHECK( arr_actual[ind] == ind );
         }
     }
 }
@@ -92,7 +96,7 @@ TEST_CASE( "Array::output to iostream", "[Array]" ) {
 
     std::string str_actual{ str_stream.str() };
     
-    REQUIRE( str_actual == str_expected );
+    CHECK( str_actual == str_expected );
 }
 
 TEST_CASE( "Array_2d::construction of Array_2ds", "[Array_2d]" ) {
@@ -101,9 +105,9 @@ TEST_CASE( "Array_2d::construction of Array_2ds", "[Array_2d]" ) {
         size_t expected_rows{ 2 }, expected_cols{ 3 };
         Array_2d<int> arr_actual{ 2, 3 };
 
-        REQUIRE( arr_actual.size() == expected_rows*expected_cols );
-        REQUIRE( arr_actual.shape()[0] == expected_rows );
-        REQUIRE( arr_actual.shape()[1] == expected_cols );
+        CHECK( arr_actual.size() == expected_rows*expected_cols );
+        CHECK( arr_actual.shape()[0] == expected_rows );
+        CHECK( arr_actual.shape()[1] == expected_cols );
     }
     SECTION( "constructing using initializer list" ) {
         size_t expected_rows{ 2 }, expected_cols{ 3 };
@@ -121,7 +125,8 @@ TEST_CASE( "Array_2d::construction of Array_2ds", "[Array_2d]" ) {
         {
             for (size_t j = 0; j < expected_cols; j++)
             {
-                REQUIRE( arr_actual.at(i, j) == i*expected_cols + j );
+                CAPTURE( i, j );
+                CHECK( arr_actual.at(i, j) == i*expected_cols + j );
             }
         }
     }
@@ -141,7 +146,8 @@ TEST_CASE( "Array_2d::2d subscripting of Array_2ds", "[Array_2d]" ) {
     {
         for (size_t j = 0; j < expected_cols; j++)
         {
-            REQUIRE( arr_actual.at(i, j) == i*expected_cols + j );
+            CAPTURE( i, j );
+            CHECK( arr_actual.at(i, j) == i*expected_cols + j );
         }
     }
 }
@@ -167,7 +173,7 @@ TEST_CASE( "Array_2d::output to iostream", "[Array_2d]" ) {
 
     std::string str_actual{ str_stream.str() };
     
-    REQUIRE( str_actual == str_expected );
+    CHECK( str_actual == str_expected );
 }
 
 TEST_CASE( "DU_Array::construction of DU_Array", "[DU_Array]" ) {
@@ -218,7 +224,8 @@ TEST_CASE( "DU_Array::construction of DU_Array", "[DU_Array]" ) {
             {
                 for (size_t j = 0; j < expected_cols; j++)
                 {
-                    REQUIRE( arr_actual.at(du_ind, i, j) == du_ind*expected_rows*expected_cols + i*expected_cols + j );
+                    CAPTURE( du_ind, i, j );
+                    CHECK( arr_actual.at(du_ind, i, j) == du_ind*expected_rows*expected_cols + i*expected_cols + j );
                 }
             }
         }
@@ -236,16 +243,17 @@ TEST_CASE( "DU_Array::3d subscripting of DU_Array", "[DU_Array]" ) {
 
     // Now test each by accessing them in row major order
     // Check values of elements
-        for (size_t du_ind = 0; du_ind < expected_du; du_ind++)
+    for (size_t du_ind = 0; du_ind < expected_du; du_ind++)
+    {
+        for (size_t i = 0; i < expected_rows; i++)
         {
-            for (size_t i = 0; i < expected_rows; i++)
+            for (size_t j = 0; j < expected_cols; j++)
             {
-                for (size_t j = 0; j < expected_cols; j++)
-                {
-                    REQUIRE( arr_actual.at(du_ind, i, j) == du_ind*expected_rows*expected_cols + i*expected_cols + j );
-                }
+                CAPTURE( du_ind, i, j );
+                CHECK( arr_actual.at(du_ind, i, j) == du_ind*expected_rows*expected_cols + i*expected_cols + j );
             }
         }
+    }
 }
 
 TEST_CASE( "DU_Array::output to iostream", "[DU_Array]" ) {
@@ -306,6 +314,4 @@ TEST_CASE( "DU_Array::output to iostream", "[DU_Array]" ) {
     std::string str_actual{ str_stream.str() };
     
     REQUIRE( str_actual == str_expected );
-    
 }
-

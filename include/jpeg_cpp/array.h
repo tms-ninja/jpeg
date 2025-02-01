@@ -89,6 +89,13 @@ namespace JPEG {
         std::array<size_t, 2> arr_shape;
 
     public:
+        /// @brief Constructs an Array_2d with zero elements
+        Array_2d()
+        : buffer{}, arr_shape{0, 0}
+        {
+
+        }
+
         /// @brief Creates an Array_2d with the given number of rows and columns
         /// @param rows 
         /// @param columns 
