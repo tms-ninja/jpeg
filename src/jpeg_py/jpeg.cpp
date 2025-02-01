@@ -3,6 +3,7 @@
 #include <Python.h>
 
 #include <array>
+#include <exception>
 #include <stdexcept>
 
 // Numpy array API
@@ -12,53 +13,50 @@
 #include "jpeg_cpp/array.h"
 #include "jpeg_cpp/jpeg.h"
 
-int convert_numpy_to_array_2d(PyObject* obj, JPEG::Array_2d<double>& array_2d)
+/// @brief Exception class to indicate a Python exception has been raised
+/// and the Python error state needs to be checked
+class Python_Exception : public std::exception
 {
-    // Check it is a numpy array
-    // This allows for subclasses of numpy arrays, probably OK?
-    if (!PyArray_Check(obj))
-    {
-        PyErr_SetString(PyExc_ValueError, "Argument was not a NumPy array");
-        return -1;
-    }
+    const char* message;
 
-    PyArrayObject* np_array{ (PyArrayObject*)obj };
+public:
+    /// @brief Constructs a Python_Exception instance
+    /// @param message Error message, does not take ownership
+    Python_Exception(const char* message) noexcept : message{message} {}
 
-    // Check it has correct type
-    if (PyArray_TYPE(np_array)!=NPY_UINT8)
-    {
-        PyErr_SetString(PyExc_ValueError, "Array did not have expected type, expected np.uint8");
-        return -1;
-    }
+    const char* what() const noexcept override { return message; }
+};
 
-    // Check it is 2d
-    if (PyArray_NDIM(np_array)!=2)
-    {
-        PyErr_SetString(PyExc_ValueError, "Array did not have expected number of dimensions, expected a 2d array");
-        return -1;
-    }
+/// @brief Throes a Python_exception and sets the Python error state
+/// @param exception Python exception to set
+/// @param message Error message
+void throw_python_exception(PyObject* exception, const char* message)
+{
+    PyErr_SetString(exception, message);
+    throw Python_Exception(message);
+}
 
-    // Check its size is greater than zero in both directions
+/// @brief Constructs an Arrat_2d<double> instance from a NumPy array. Works by iterating 
+/// using NumPy iteraotrs so should work regardless of any array slicing, array order 
+/// (C/Fortran) etc. convert_numpy_to_array_2d() should be prefered.
+/// @param np_array A 2d NumPy array with type NPY_UINT8
+/// @return The newly constructed Arrat_2d<double> 
+JPEG::Array_2d<double> convert_numpy_generic_to_array_2d(PyArrayObject* np_array)
+{
     std::array<size_t, 2> shape{
         static_cast<size_t>(PyArray_DIMS(np_array)[0]),
         static_cast<size_t>(PyArray_DIMS(np_array)[1]),
     };
 
-    if (shape[0]==0 || shape[1]==0)
-    {
-        PyErr_SetString(PyExc_ValueError, "Array cannot have size zero in any dimension");
-        return -1;
-    }
+    JPEG::Array_2d<double> array_2d{ shape[0], shape[1] };
 
-    // Should be able to copy it
-    array_2d = JPEG::Array_2d<double>{ shape[0], shape[1] };
-
-    // This all uses 
     NpyIter *iter{};
     NpyIter_IterNextFunc *iternext{};
     npy_intp multi_index[2];
     char** dataptr{};
 
+    // Unfourtunately NpyIter_Deallocate() can itself raise an exception so we
+    // can't wrap iter up as a smart pointer. Best we can do
     iter = NpyIter_New(
         np_array, NPY_ITER_READONLY | NPY_ITER_MULTI_INDEX | NPY_ITER_REFS_OK,
         NPY_KEEPORDER, NPY_NO_CASTING, NULL
@@ -66,7 +64,7 @@ int convert_numpy_to_array_2d(PyObject* obj, JPEG::Array_2d<double>& array_2d)
 
     if (iter==nullptr) {
         // NpyIter_New() sets Python error state, just need to return
-        return -1;
+        throw Python_Exception("Error creating NumPy iterator");
     }
 
     if (NpyIter_GetIterSize(iter) != 0) {
@@ -75,14 +73,14 @@ int convert_numpy_to_array_2d(PyObject* obj, JPEG::Array_2d<double>& array_2d)
 
         if (iternext == NULL) {
             NpyIter_Deallocate(iter);
-            return -1;
+            throw Python_Exception("Error getting iternext");
         }
 
         NpyIter_GetMultiIndexFunc *get_multi_index = NpyIter_GetGetMultiIndex(iter, NULL);
 
         if (get_multi_index == NULL) {
             NpyIter_Deallocate(iter);
-            return -1;
+            throw Python_Exception("Error getting get_multi_index");
         }
 
         do {
@@ -98,10 +96,54 @@ int convert_numpy_to_array_2d(PyObject* obj, JPEG::Array_2d<double>& array_2d)
     }
 
     if (!NpyIter_Deallocate(iter)) {
-        return -1;
+        throw Python_Exception("Error in NpyIter_Deallocate()");
     }
 
-    return 0;
+    return array_2d;
+}
+
+/// @brief Constructs an Arrat_2d<double> instance from a NumPy array.
+/// @param obj NumPy array as a Python object
+/// @return The newly constructed Arrat_2d<double> 
+JPEG::Array_2d<double> convert_numpy_to_array_2d(PyObject* obj)
+{
+    // Check it is a numpy array
+    // This allows for subclasses of numpy arrays, probably OK?
+    if (!PyArray_Check(obj))
+    {   
+        throw_python_exception(PyExc_ValueError, "Argument was not a NumPy array");
+    }
+
+    PyArrayObject* np_array{ (PyArrayObject*)obj };
+
+    // Check it has correct type
+    if (PyArray_TYPE(np_array)!=NPY_UINT8)
+    {
+        throw_python_exception(PyExc_ValueError, "Array did not have expected type, expected np.uint8");
+    }
+
+    // Check it is 2d
+    if (PyArray_NDIM(np_array)!=2)
+    {
+        throw_python_exception(PyExc_ValueError, "Array did not have expected number of dimensions, expected a 2d array");
+    }
+
+    // Check its size is greater than zero in both directions
+    std::array<size_t, 2> shape{
+        static_cast<size_t>(PyArray_DIMS(np_array)[0]),
+        static_cast<size_t>(PyArray_DIMS(np_array)[1]),
+    };
+
+    if (shape[0]==0 || shape[1]==0)
+    {
+        throw_python_exception(PyExc_ValueError, "Array cannot have size zero in any dimension");
+    }
+
+    // This works for a generic numpy array, regardless of how it exists in memory
+    // In future we might be able to get a performance improvement for arrays that
+    // are C contiguous. We can use PyArray_IS_C_CONTIGUOUS() to check this. Note 
+    // this question regarding strides: https://github.com/numpy/numpy/issues/15979
+    return convert_numpy_generic_to_array_2d(np_array);
 }
 
 PyDoc_STRVAR(encode_greyscale_docstring,
@@ -121,6 +163,33 @@ PyDoc_STRVAR(encode_greyscale_docstring,
     "    The encoded image as a series of bytes"
 );
 
+/// @brief Wraps the C++ JPEG:encode_greyscale
+/// @param np_array Image data as a numpy array
+/// @return Encoded image as a Python bytes object
+PyObject* encode_greyscale_wrapper(PyObject* np_array)
+{
+    JPEG::Array_2d<double> array_2d;
+    std::vector<unsigned char> encoded_image;
+
+    array_2d = convert_numpy_to_array_2d(np_array);
+
+    // Perform the encoding
+    encoded_image = JPEG::encode_greyscale_image(array_2d);
+
+    // Now convert to a bytes object
+    // note PyBytes_FromStringAndSize() returns null on failure
+    PyObject* bytes{};
+
+    bytes = PyBytes_FromStringAndSize((char*)encoded_image.data(), encoded_image.size());
+
+    if (!bytes)
+    {
+        throw Python_Exception("Error creating bytes object");
+    }
+
+    return bytes;
+}
+
 static PyObject *encode_greyscale(PyObject *self, PyObject *args) {
     PyObject* np_array;
 
@@ -128,21 +197,27 @@ static PyObject *encode_greyscale(PyObject *self, PyObject *args) {
         return nullptr;
     }
 
-    
-    JPEG::Array_2d<double> array_2d;
+    PyObject* encoded_image{};
 
-    if (convert_numpy_to_array_2d(np_array, array_2d))
+    try
     {
-        // Return null pointer to indicate an error to python
+        encoded_image = encode_greyscale_wrapper(np_array);
+    }
+    catch(const Python_Exception& e)
+    {
+        // Something raised a Python exception. Python exception state is 
+        // already set so just return
         return nullptr;
     }
-
-    // Perform the encoding
-    std::vector<unsigned char> encoded_image{ JPEG::encode_greyscale_image(array_2d) };
-
-    // Now convert to a bytes object
-    // note PyBytes_FromStringAndSize() returns null on failiure so can just return
-    return PyBytes_FromStringAndSize((char*)encoded_image.data(), encoded_image.size());
+    catch(const std::exception& e)
+    {
+        // Unexpected error, Python exception state has not been set
+        // Set the Python exception state as a runtime error
+        PyErr_SetString(PyExc_RuntimeError, e.what());
+        return nullptr;
+    }
+    
+    return encoded_image;
 }
 
 static PyMethodDef jpeg_methods[] = {
