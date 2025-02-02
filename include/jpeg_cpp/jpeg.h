@@ -17,6 +17,15 @@ namespace JPEG
     /// @param array_2d Array containing the image data
     /// @return Image data encoded as a JPEG
     std::vector<unsigned char> encode_greyscale_image(const Array_2d<double>& array_2d);
+
+    /// @brief Encodes a colour image
+    /// @param red Red component of image
+    /// @param green Green component of image
+    /// @param blue Blue component of image
+    /// @return Image data encoded as a JPEG
+    std::vector<unsigned char> encode_colour_image(
+        const Array_2d<double>& red, const Array_2d<double>& green, const Array_2d<double>& blue
+    );
 }
 
 #endif
