@@ -715,5 +715,59 @@ namespace JPEG
         
         return enlarged_component;
     }
+
+    std::tuple<Array_2d<double>&, Array_2d<double>&, Array_2d<double>&> colour_transform(
+        Array_2d<double>& red, Array_2d<double>& green, Array_2d<double>& blue
+    )
+    {
+        assert("red and green components were not the same size" && red.size()==green.size());
+        assert("green and blue components were not the same size" && green.size()==blue.size());
+
+        auto& Y_arr{ red };
+        auto& U_arr{ green };
+        auto& V_arr{ blue };
+
+        // Note round() is defined as floor(x+0.5) in this context
+        auto round = [](double n){
+            return std::floor(n+0.5);
+        };
+
+        constexpr size_t N_colours{ 3 };
+
+        std::array<std::array<double, N_colours>, N_colours> colour_mat{{
+            {0.299, 0.587, 0.114},
+            {-0.299 / 1.772, -0.587 / 1.772,  0.886 / 1.772},
+            { 0.701 / 1.402, -0.587 / 1.402, -0.114 / 1.402}
+        }};
+
+        std::array<double, N_colours> biases{ 0, 128, 128 };
+
+        std::array<double, N_colours> RGB_cols, YUV_cols;
+
+        for (size_t ind = 0; ind < red.size(); ind++)
+        {
+            RGB_cols = {red[ind], green[ind], blue[ind]};
+            
+            for (size_t yuv_ind = 0; yuv_ind < N_colours; yuv_ind++)
+            {
+                double& cur_YUV{ YUV_cols[yuv_ind] };
+
+                cur_YUV = biases[yuv_ind];
+
+                for (size_t rgb_ind = 0; rgb_ind < N_colours; rgb_ind++)
+                {
+                    cur_YUV += colour_mat[yuv_ind][rgb_ind]*RGB_cols[rgb_ind];
+                }
+
+                cur_YUV = std::min(std::max(0.0, round(cur_YUV)), 255.0);
+            }
+            
+            Y_arr[ind] = YUV_cols[0];
+            U_arr[ind] = YUV_cols[1];
+            V_arr[ind] = YUV_cols[2];
+        }
+
+        return {Y_arr, U_arr, V_arr};
+    }
 }
 

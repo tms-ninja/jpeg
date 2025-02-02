@@ -2761,3 +2761,111 @@ TEST_CASE( "enlarge_component()::2x3 H=1, V=1", "[enlarge_component()]" ) {
     }
 }
 
+TEST_CASE( "colour_transform()::Check minimum output is 0", "[colour_transform()]" ) {
+
+    // Uses inputs designed to give the smallest possible output after the colour matrix
+    // multiplication and checks they are not less than zero
+    // For each component:
+    // Y : (  0,   0,   0) -> 0
+    // U : (255, 255,   0) -> 1
+    // V : (  0, 255, 255) -> 1
+    Array_2d<double> red{ 
+        {0, 255, 0}
+    };
+
+    Array_2d<double> green{ 
+        {0, 255, 255}
+    };
+
+    Array_2d<double> blue{ 
+        {0, 0, 255}
+    };
+
+    // Now process
+    auto [Y, U, V] = colour_transform(red, green, blue);
+
+    for (size_t ind = 0; ind < red.size(); ind++)
+    {
+        CAPTURE( ind );
+        CHECK( Y[ind] >= 0.0 );
+        CHECK( U[ind] >= 0.0 );
+        CHECK( V[ind] >= 0.0 );
+    }
+}
+
+TEST_CASE( "colour_transform()::Check maximum output is 255", "[colour_transform()]" ) {
+
+    // Uses inputs designed to give the largest possible output after the colour matrix
+    // multiplication and checks they are not more than 255
+    // For each component:
+    // Y : (255, 255, 255) -> 255
+    // U : (  0,   0, 255) -> 255.5 (exact)
+    // V : (255,   0,   0) -> 255.5 (exact)
+    Array_2d<double> red{ 
+        {255, 0, 255}
+    };
+
+    Array_2d<double> green{ 
+        {255, 0, 0}
+    };
+
+    Array_2d<double> blue{ 
+        {255, 255, 0}
+    };
+
+    // Now process
+    auto [Y, U, V] = colour_transform(red, green, blue);
+
+    for (size_t ind = 0; ind < red.size(); ind++)
+    {
+        CAPTURE( ind );
+        CHECK( Y[ind] <= 255.0 );
+        CHECK( U[ind] <= 255.0 );
+        CHECK( V[ind] <= 255.0 );
+    }
+}
+
+TEST_CASE( "colour_transform()::Check sample values", "[colour_transform()]" ) {
+
+    // Test some sample inputs RGB->YUV:
+    // ( 34,  67,  23) -> ( 52, 112, 115)
+    // (105,   4, 230) -> ( 60, 224, 160)
+    // (200, 170, 210) -> (184, 143, 140)
+    // (120, 140,  10) -> (119,  66, 129)
+    // (240,  50,  70) -> (109, 106, 221)
+
+    Array_2d<double> red{ 
+        { 34, 105, 200, 120, 240}
+    };
+
+    Array_2d<double> green{ 
+        { 67,   4, 170, 140,  50}
+    };
+
+    Array_2d<double> blue{ 
+        { 23, 230, 210,  10, 70}
+    };
+
+    std::vector<double> expected_Y{
+         52,  60, 184, 119, 109
+    };
+
+    std::vector<double> expected_U{
+        112, 224, 143,  66, 106
+    };
+
+    std::vector<double> expected_V{
+        115, 160, 140, 129, 221
+    };
+
+    // Now process
+    auto [Y, U, V] = colour_transform(red, green, blue);
+
+    for (size_t ind = 0; ind < red.size(); ind++)
+    {
+        CAPTURE( ind );
+        CHECK( Y[ind] == expected_Y[ind] );
+        CHECK( U[ind] == expected_U[ind] );
+        CHECK( V[ind] == expected_V[ind] );
+    }
+}

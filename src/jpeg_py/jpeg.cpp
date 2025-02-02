@@ -220,8 +220,103 @@ static PyObject *encode_greyscale(PyObject *self, PyObject *args) {
     return encoded_image;
 }
 
+/// @brief Wraps the C++ JPEG:encode_colour
+/// @param red_np Red image component as a numpy array
+/// @param green_np Green image component as a numpy array
+/// @param blue_np Blue image component as a numpy array
+/// @return Encoded image as a Python bytes object
+PyObject* encode_colour_wrapper(PyObject* red_np, PyObject* green_np, PyObject* blue_np)
+{
+    JPEG::Array_2d<double> red, green, blue;
+
+    red = convert_numpy_to_array_2d(red_np);
+    green = convert_numpy_to_array_2d(green_np);
+    blue = convert_numpy_to_array_2d(blue_np);
+
+    // Verify components have the same shape
+    if (
+         red.shape()[0]!=green.shape()[0] ||  red.shape()[1]!=green.shape()[1] ||
+        blue.shape()[0]!=green.shape()[0] || blue.shape()[1]!=green.shape()[1]
+        )
+    {
+        throw_python_exception(PyExc_ValueError, "Components did not all have the same shape");
+    }
+
+    // Perform the encoding
+    std::vector<unsigned char> encoded_image;
+
+    encoded_image = JPEG::encode_colour_image(red, green, blue);
+
+    // Now convert to a bytes object
+    // note PyBytes_FromStringAndSize() returns null on failure and sets the Python error state
+    PyObject* bytes{};
+
+    bytes = PyBytes_FromStringAndSize((char*)encoded_image.data(), encoded_image.size());
+
+    if (!bytes)
+    {
+        throw Python_Exception("Error creating bytes object");
+    }
+
+    return bytes;
+}
+
+PyDoc_STRVAR(encode_colour_docstring,
+    "encode_colour(red, green, blue)\n"  // Include function's signature first 
+    "--\n\n"                             // We need this "--\n\n" so Python knows the first line is the function signature
+    "\n"
+    "Encodes a colour image as a JPEG\n"
+    "\n"
+    "Parameters\n"
+    "----------\n"
+    "red : numpy.ndarray\n"
+    "    Red image component\n"
+    "green : numpy.ndarray\n"
+    "    Green image component\n"
+    "blue : numpy.ndarray\n"
+    "    Blue image component\n"
+    "\n"
+    "Returns\n"
+    "-------\n"
+    "bytes\n"
+    "    The encoded image as a series of bytes"
+);
+
+static PyObject *encode_colour(PyObject *self, PyObject *args) {
+    PyObject* red;
+    PyObject* green;
+    PyObject* blue;
+
+    if (!PyArg_ParseTuple(args, "OOO", &red, &green, &blue)) {
+        return nullptr;
+    }
+
+    PyObject* encoded_image{};
+
+    try
+    {
+        encoded_image = encode_colour_wrapper(red, green, blue);
+    }
+    catch(const Python_Exception& e)
+    {
+        // Something raised a Python exception. Python exception state is 
+        // already set so just return
+        return nullptr;
+    }
+    catch(const std::exception& e)
+    {
+        // Unexpected error, Python exception state has not been set
+        // Set the Python exception state as a runtime error
+        PyErr_SetString(PyExc_RuntimeError, e.what());
+        return nullptr;
+    }
+    
+    return encoded_image;
+}
+
 static PyMethodDef jpeg_methods[] = {
     {"encode_greyscale", encode_greyscale, METH_VARARGS, encode_greyscale_docstring},
+    {"encode_colour", encode_colour, METH_VARARGS, encode_colour_docstring},
     {NULL, NULL, 0, NULL}
 };
 
@@ -234,7 +329,7 @@ static struct PyModuleDef jpeg_module = {
 PyMODINIT_FUNC PyInit_jpeg(void) {
     // Initalize numpy C API
     if (PyArray_ImportNumPyAPI() < 0) {
-    return nullptr;
+        return nullptr;
     }
 
     return PyModule_Create(&jpeg_module);

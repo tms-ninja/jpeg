@@ -8,8 +8,8 @@
 
 #include <array>
 #include <cassert>
-
 #include <stdexcept>
+#include <tuple>
 #include <vector>
 
 #include "jpeg_cpp/array.h"
@@ -264,6 +264,15 @@ namespace JPEG
     /// @param H Horizontal sampling factor
     /// @return A new Array_2d that satisfies the width and height requirements
     Array_2d<double> enlarge_component(const Array_2d<double>& orig_comp, unsigned int V, unsigned int H);
+
+    /// @brief Transforms RGB to the YUV colour space in place as defined in ITU T.871
+    /// @param red Red image component
+    /// @param green Green image component
+    /// @param blue Blue image component
+    /// @return Tuple containing references to the YUV components
+    std::tuple<Array_2d<double>&, Array_2d<double>&, Array_2d<double>&> colour_transform(
+        Array_2d<double>& red, Array_2d<double>& green, Array_2d<double>& blue
+    );
 }
 
 #endif
