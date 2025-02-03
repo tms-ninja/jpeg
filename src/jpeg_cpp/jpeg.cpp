@@ -2,11 +2,11 @@
 
 namespace JPEG
 {
-    std::vector<unsigned char> encode_greyscale_image(const Array_2d<double>& array_2d)
+    std::vector<unsigned char> encode_greyscale_image(const Array_2d<double>& array_2d, int qf)
     {
         // Load relevant quantization & Huffman tables
         std::vector<Q_Table> q_tables{
-            Q_Table::load_spec_table(Image_Component::Luminance)
+            Q_Table::load_q_table_from_quality_factor(Image_Component::Luminance, qf)
         };
 
         std::vector<Huff_Table> dc_huff_tables{

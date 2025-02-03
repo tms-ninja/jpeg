@@ -35,6 +35,21 @@ class Test_encode_greyscale(unittest.TestCase):
         # Hard to say what a reasonable value for the expected mean difference is
         # Seems to be about 0.006 for the spec luminance table
         self.assertLess(mean_diff, 0.01)
+
+    def test_mean_diff_qf_90(self):
+        """Tests the mean difference between the original and encoded images using a quality factor of 90"""
+
+        # Encode and then decode the pirate image
+        encoded_image = jpeg.encode_greyscale(self.pirate_img, qf=90)
+
+        with PIL.Image.open(io.BytesIO(encoded_image)) as im:
+            decoded_image = np.array(im)
+
+        # Now check the decoded image is similar to the original
+        mean_diff = abs((decoded_image.astype(np.float64) - self.pirate_img.astype(np.float64)).mean())
+
+        # Hard to say what a reasonable value for the expected mean difference is
+        self.assertLess(mean_diff, 0.01)
     
     def test_reject_non_numpy_array(self):
         """Tests objects other than numpy arrays are rejected"""
@@ -72,6 +87,17 @@ class Test_encode_greyscale(unittest.TestCase):
                 [[[1, 2, 3, 4]]],
                 dtype=np.uint8
             ))
+
+    def test_reject_incorrect_quality_factor(self):
+        """Tests quality factors less than 0 or greater than 100 are rejected"""
+
+        with self.assertRaises(ValueError) as context:
+            _ = jpeg.encode_greyscale(self.pirate_img, qf=-1)
+
+        with self.assertRaises(ValueError) as context:
+            _ = jpeg.encode_greyscale(self.pirate_img, qf=101)
+
+        
 
 class Test_encode_colour(unittest.TestCase):
     """Tests encode_colour()"""
