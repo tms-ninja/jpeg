@@ -38,13 +38,13 @@ namespace JPEG
     }
 
     std::vector<unsigned char> encode_colour_image(
-        const Array_2d<double>& red, const Array_2d<double>& green, const Array_2d<double>& blue
+        const Array_2d<double>& red, const Array_2d<double>& green, const Array_2d<double>& blue, int qf
     )
     {
         // Load relevant quantization & Huffman tables
         std::vector<Q_Table> q_tables{
-            Q_Table::load_spec_table(Image_Component::Luminance),
-            Q_Table::load_spec_table(Image_Component::Chrominance)
+            Q_Table::load_q_table_from_quality_factor(Image_Component::Luminance, qf),
+            Q_Table::load_q_table_from_quality_factor(Image_Component::Chrominance, qf)
         };
 
         std::vector<Huff_Table> dc_huff_tables{

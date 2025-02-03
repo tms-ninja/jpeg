@@ -258,8 +258,9 @@ static PyObject *encode_greyscale(PyObject *self, PyObject *args, PyObject* kwar
 /// @param red_np Red image component as a numpy array
 /// @param green_np Green image component as a numpy array
 /// @param blue_np Blue image component as a numpy array
+/// @param qf Quality factor
 /// @return Encoded image as a Python bytes object
-PyObject* encode_colour_wrapper(PyObject* red_np, PyObject* green_np, PyObject* blue_np)
+PyObject* encode_colour_wrapper(PyObject* red_np, PyObject* green_np, PyObject* blue_np, int qf)
 {
     JPEG::Array_2d<double> red, green, blue;
 
@@ -276,10 +277,12 @@ PyObject* encode_colour_wrapper(PyObject* red_np, PyObject* green_np, PyObject* 
         throw_python_exception(PyExc_ValueError, "Components did not all have the same shape");
     }
 
+    validate_quality_factor(qf);
+
     // Perform the encoding
     std::vector<unsigned char> encoded_image;
 
-    encoded_image = JPEG::encode_colour_image(red, green, blue);
+    encoded_image = JPEG::encode_colour_image(red, green, blue, qf);
 
     // Now convert to a bytes object
     // note PyBytes_FromStringAndSize() returns null on failure and sets the Python error state
@@ -296,8 +299,8 @@ PyObject* encode_colour_wrapper(PyObject* red_np, PyObject* green_np, PyObject* 
 }
 
 PyDoc_STRVAR(encode_colour_docstring,
-    "encode_colour(red, green, blue)\n"  // Include function's signature first 
-    "--\n\n"                             // We need this "--\n\n" so Python knows the first line is the function signature
+    "encode_colour(red, green, blue, qf=50)\n"   // Include function's signature first 
+    "--\n\n"                                     // We need this "--\n\n" so Python knows the first line is the function signature
     "\n"
     "Encodes a colour image as a JPEG\n"
     "\n"
@@ -309,6 +312,11 @@ PyDoc_STRVAR(encode_colour_docstring,
     "    Green image component\n"
     "blue : numpy.ndarray\n"
     "    Blue image component\n"
+    "qf : int, optional\n"
+    "    Quality factor from 0 to 100 inclusive used to set image quality using\n"
+    "    the Independent JPEG Group's algorithm. A value of 50 corresponds to\n"
+    "    using the JPEG specification's suggested quantization tables. The\n"
+    "    default is 50.\n"
     "\n"
     "Returns\n"
     "-------\n"
@@ -316,12 +324,26 @@ PyDoc_STRVAR(encode_colour_docstring,
     "    The encoded image as a series of bytes"
 );
 
-static PyObject *encode_colour(PyObject *self, PyObject *args) {
+static PyObject *encode_colour(PyObject *self, PyObject *args, PyObject* kwargs) {
     PyObject* red;
     PyObject* green;
     PyObject* blue;
+    int qf{ 50 };  // default value correpsonds to JPEG spec suggested tables
 
-    if (!PyArg_ParseTuple(args, "OOO", &red, &green, &blue)) {
+    // Names of all arguments, including positional and keyword
+    const char* keywords[] = {
+        "red",
+        "green",
+        "blue",
+        "qf",
+        nullptr
+    };
+
+    // Note PyArg_ParseTupleAndKeywords() also ensures qf will fit in a C int. If not it raises a 
+    // Python exception for up
+    // Apparently using const_cast is appropriate here, PyArg_ParseTupleAndKeywords() shouldn't alter
+    // keywords
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO|i", const_cast<char**>(keywords), &red, &green, &blue, &qf)) {
         return nullptr;
     }
 
@@ -329,7 +351,7 @@ static PyObject *encode_colour(PyObject *self, PyObject *args) {
 
     try
     {
-        encoded_image = encode_colour_wrapper(red, green, blue);
+        encoded_image = encode_colour_wrapper(red, green, blue, qf);
     }
     catch(const Python_Exception& e)
     {
@@ -350,7 +372,7 @@ static PyObject *encode_colour(PyObject *self, PyObject *args) {
 
 static PyMethodDef jpeg_methods[] = {
     {"encode_greyscale", (PyCFunction)encode_greyscale, METH_VARARGS | METH_KEYWORDS, encode_greyscale_docstring},
-    {"encode_colour", encode_colour, METH_VARARGS, encode_colour_docstring},
+    {"encode_colour", (PyCFunction)encode_colour, METH_VARARGS | METH_KEYWORDS, encode_colour_docstring},
     {NULL, NULL, 0, NULL}
 };
 

@@ -133,6 +133,26 @@ class Test_encode_colour(unittest.TestCase):
             # Hard to say what a reasonable value for the expected mean difference is
             # Max seems to be about 0.13 for the blue component using spec quantization tables
             self.assertLess(mean_diff, 1.0)
+
+    def test_mean_diff_qf_90(self):
+        """Tests the mean difference between the original and encoded images using a quality factor of 90"""
+
+        # Encode and then decode the pirate image
+        encoded_image = jpeg.encode_colour(*self.mandrill_img, qf=90)
+
+        with PIL.Image.open(io.BytesIO(encoded_image)) as im:
+            decoded_image = np.array(im)
+
+        decoded_image = tuple(decoded_image[:, :, i] for i in range(3))
+
+        # Now check the decoded image is similar to the original, component by component
+        for c_orig, c_dec in zip(self.mandrill_img, decoded_image):
+                
+            mean_diff = abs((c_dec.astype(np.float64) - c_orig.astype(np.float64)).mean())
+
+            # Hard to say what a reasonable value for the expected mean difference is
+            # Max seems to be about 0.13 for the blue component using spec quantization tables
+            self.assertLess(mean_diff, 1.0)
     
     def test_reject_non_numpy_array(self):
         """Tests objects other than numpy arrays are rejected"""
@@ -226,3 +246,12 @@ class Test_encode_colour(unittest.TestCase):
 
         with self.assertRaises(ValueError) as context:
             _ = jpeg.encode_colour(valid_component, valid_component, array_bad_shape)
+
+    def test_reject_incorrect_quality_factor(self):
+        """Tests quality factors less than 0 or greater than 100 are rejected"""
+
+        with self.assertRaises(ValueError) as context:
+            _ = jpeg.encode_colour(*self.mandrill_img, qf=-1)
+
+        with self.assertRaises(ValueError) as context:
+            _ = jpeg.encode_colour(*self.mandrill_img, qf=101)
