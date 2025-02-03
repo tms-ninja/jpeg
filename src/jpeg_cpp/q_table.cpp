@@ -57,4 +57,44 @@ namespace JPEG
 
         return q_table;
     }
+
+    Q_Table Q_Table::load_q_table_from_quality_factor(Image_Component type, int qf)
+    {
+        if (qf<0)
+        {
+            throw std::invalid_argument("Quality factor cannot be less than 0");
+        }
+        else if (qf>100)
+        {
+            throw std::invalid_argument("Quality factor cannot be greater than 100");
+        }
+
+        Q_Table table{ Q_Table::load_spec_table(type) };
+        
+        // Avoid division of zero later
+        if (qf==0)
+        {
+            qf = 1;
+        }
+
+        double s{ qf<50 ? 5000.0/qf : 200.0-2.0*qf };
+
+        for (size_t ind = 0; ind < table.size(); ind++)
+        {
+            table[ind] = std::floor(s*table[ind]/100.0 + 0.5);
+
+            if (table[ind]==0)
+            {
+                table[ind] = 1;
+            }
+            else if (table[ind]>255)
+            {
+                // quantization table elements of 8 bit precision images
+                // can't be more than 8 bits
+                table[ind] = 255;
+            }
+        }
+
+        return table;
+    }
 }

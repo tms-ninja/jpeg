@@ -76,3 +76,80 @@ TEST_CASE( "Q_Table::string output", "[Q_Table]" ) {
     
     REQUIRE( str_actual == str_expected );
 }
+
+TEST_CASE( "Q_Table::generation from quality factor", "[Q_Table]" ) {
+    Image_Component comp{ Image_Component::Luminance };
+    
+    SECTION("qf = 0") {
+        int qf{ 0 };
+        Q_Table table{ Q_Table::load_q_table_from_quality_factor(comp, qf) };
+
+        CAPTURE( qf );
+
+        // quantization table elements of 8 bit precision images
+        // can't be more than 8 bits
+        CHECK( table(0, 0) == 255 );
+        CHECK( table(4, 0) == 255 );
+        CHECK( table(0, 4) == 255 );
+        CHECK( table(6, 7) == 255 );
+    }
+    SECTION("qf = 25") {
+        int qf{ 25 };
+        Q_Table table{ Q_Table::load_q_table_from_quality_factor(comp, qf) };
+
+        CAPTURE( qf );
+
+        CHECK( table(0, 0) == 32 );
+        CHECK( table(4, 0) == 36 );
+        CHECK( table(0, 4) == 48 );
+        CHECK( table(6, 7) == 202 );
+    }
+    SECTION("qf = 50") {
+        // Should generate spec tables
+        int qf{ 50 };
+        Q_Table table{ Q_Table::load_q_table_from_quality_factor(comp, qf) };
+
+        CAPTURE( qf );
+
+        CHECK( table(0, 0) == 16 );
+        CHECK( table(4, 0) == 18 );
+        CHECK( table(0, 4) == 24 );
+        CHECK( table(6, 7) == 101 );
+    }
+    SECTION("qf = 95") {
+        // Should generate spec tables
+        int qf{ 95 };
+        Q_Table table{ Q_Table::load_q_table_from_quality_factor(comp, qf) };
+
+        CAPTURE( qf );
+
+        CHECK( table(0, 0) == 2 );
+        CHECK( table(4, 0) == 2 );
+        CHECK( table(0, 4) == 2 );
+        CHECK( table(6, 7) == 10 );
+    }
+    SECTION("qf = 100") {
+        // Should generate spec tables
+        int qf{ 100 };
+        Q_Table table{ Q_Table::load_q_table_from_quality_factor(comp, qf) };
+
+        CAPTURE( qf );
+
+        CHECK( table(0, 0) == 1 );
+        CHECK( table(4, 0) == 1 );
+        CHECK( table(0, 4) == 1 );
+        CHECK( table(6, 7) == 1 );
+    }
+    SECTION("qf < 0 rejected") {
+        // Should generate spec tables
+        int qf{ -1 };
+
+        CHECK_THROWS_AS( Q_Table::load_q_table_from_quality_factor(comp, qf), std::invalid_argument );
+    }
+    SECTION("qf > 100 rejected") {
+        // Should generate spec tables
+        int qf{ 101 };
+
+        CHECK_THROWS_AS( Q_Table::load_q_table_from_quality_factor(comp, qf), std::invalid_argument );
+    }
+}
