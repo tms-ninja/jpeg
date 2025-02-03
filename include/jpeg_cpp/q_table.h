@@ -2,6 +2,7 @@
 #define Q_TABLE_H
 
 #include <array>
+#include <cmath>
 
 #include "jpeg_cpp/array.h"
 #include "general.h"
@@ -74,6 +75,13 @@ namespace JPEG
         /// @param type Component type (Luminance/Chromiance)
         /// @return Quantization table
         static Q_Table load_spec_table(Image_Component type);
+
+        /// @brief Generates a quantization table for a given quality factor using the IJG algorithm.
+        /// @param type Component type (Luminance/Chromiance)
+        /// @param qf Quality factor, integer from 0 to 100 inclusive. 50 corresponds to JPEG spec suggested
+        /// tables
+        /// @return Quantization table
+        static Q_Table load_q_table_from_quality_factor(Image_Component type, int qf);
     };
 }
 
