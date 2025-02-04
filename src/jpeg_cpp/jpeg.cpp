@@ -38,7 +38,8 @@ namespace JPEG
     }
 
     std::vector<unsigned char> encode_colour_image(
-        const Array_2d<double>& red, const Array_2d<double>& green, const Array_2d<double>& blue, int qf
+        const Array_2d<double>& red, const Array_2d<double>& green, const Array_2d<double>& blue, int qf,
+        Subsampling ss
     )
     {
         // Load relevant quantization & Huffman tables
@@ -64,28 +65,62 @@ namespace JPEG
         // AC_Huff_table_ind
         // H
         // V
-        std::vector<Comp_Info> comp_infos{
-            // Luminance component
-            Comp_Info{0, 0, 0, 1, 1},
-            // Chromiance components
-            // We'll ignore subsampling for now
-            Comp_Info{1, 1, 1, 1, 1},
-            Comp_Info{1, 1, 1, 1, 1},
+        std::vector<Comp_Info> comp_infos;
+
+        switch (ss)
+        {
+        case Subsampling::ss_4_4_4:
+            // No subsampling, H and V both 1
+            comp_infos.emplace_back(0, 0, 0, 1, 1);
+            break;
+        case Subsampling::ss_4_2_2:
+            comp_infos.emplace_back(0, 0, 0, 2, 1);
+            break;
+        case Subsampling::ss_4_2_0:
+            comp_infos.emplace_back(0, 0, 0, 2, 2);
+            break;
+        default:
+            throw std::invalid_argument("Chosen subsampling is not supported");
+        }
+
+        // Chromiance components aways have horizontal and vertical subsampling factors set to 1
+        comp_infos.emplace_back(1, 1, 1, 1, 1);
+        comp_infos.emplace_back(1, 1, 1, 1, 1);
+
+        // Enlarge component as neccessary. Since H and V are always either 1 or 2 (in our case)
+        // we just need to find the maximum H and V for all components
+        unsigned int max_H{
+            std::max_element(comp_infos.begin(), comp_infos.end(), 
+                [](Comp_Info a, Comp_Info b)
+                {
+                    return a.H < b.H;
+                }
+            )->H
+        };
+        unsigned int max_V{
+            std::max_element(comp_infos.begin(), comp_infos.end(), 
+                [](Comp_Info a, Comp_Info b)
+                {
+                    return a.V < b.V;
+                }
+            )->V
         };
 
-        // Enlarge component as neccessary
         std::vector<Array_2d<double>> enlarged_comps{
-            // enlarge_component() needs to be updated to use number of samples 
-            // instead of sampling factors  
-            enlarge_component(red, comp_infos[0].V, comp_infos[0].H),
-            enlarge_component(green, comp_infos[1].V, comp_infos[1].H),
-            enlarge_component(blue, comp_infos[2].V, comp_infos[2].H)
+            enlarge_component(red, max_V, max_H),
+            enlarge_component(green, max_V, max_H),
+            enlarge_component(blue, max_V, max_H)
         };
 
         // Perform the colour transform
         colour_transform(enlarged_comps[0], enlarged_comps[1], enlarged_comps[2]);
 
-        // If future we'll perform subsampling here but we'll leave that for now
+        // Only subsample the chromiance components
+        for (size_t ind = 1; ind < enlarged_comps.size(); ind++)
+        {
+            auto &comp{ enlarged_comps[ind] };
+            subsample_component(comp, ss);
+        }
 
         // Now call the general encode function
         const unsigned int Y{ static_cast<unsigned int>(red.shape()[0]) };

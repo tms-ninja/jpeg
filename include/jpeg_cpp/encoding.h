@@ -273,6 +273,25 @@ namespace JPEG
     std::tuple<Array_2d<double>&, Array_2d<double>&, Array_2d<double>&> colour_transform(
         Array_2d<double>& red, Array_2d<double>& green, Array_2d<double>& blue
     );
+
+    enum class Subsampling {
+        ss_4_4_4,
+        ss_4_2_2,
+        ss_4_2_0,
+    };
+
+    /// @brief Subsamples the comonent using 4:2:0 subsampling in place
+    /// @param component Component to subsample, should have been appropriately enlarged
+    void subsample_component_4_2_0(Array_2d<double>& component);
+
+    /// @brief Subsamples the comonent using 4:2:2 subsampling in place
+    /// @param component Component to subsample, should have been appropriately enlarged
+    void subsample_component_4_2_2(Array_2d<double>& component);
+
+    /// @brief Subsamples the component with the chosen subsampling in place
+    /// @param component Component to subsample, should have been appropriately enlarged
+    /// @param ss Subsampling to use
+    void subsample_component(Array_2d<double>& component, Subsampling ss);
 }
 
 #endif
