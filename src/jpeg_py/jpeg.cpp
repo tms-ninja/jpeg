@@ -172,6 +172,10 @@ JPEG::Subsampling convert_subsampling_str(const std::string& ss_str)
     {
         ss = JPEG::Subsampling::ss_4_4_4;
     }
+    else if (ss_str=="4:2:2")
+    {
+        ss = JPEG::Subsampling::ss_4_2_2;
+    }
     else if (ss_str=="4:2:0")
     {
         ss = JPEG::Subsampling::ss_4_2_0;
@@ -348,8 +352,8 @@ PyDoc_STRVAR(encode_colour_docstring,
     "    using the JPEG specification's suggested quantization tables. The\n"
     "    default is 50.\n"
     "ss : str, optional\n"
-    "    Subsampling to perform, either '4:4:4' (no subsampling) or '4:2:0'. The\n"
-    "    default is '4:4:4'.\n"
+    "    Subsampling to perform, either '4:4:4' (no subsampling), '4:2:2' or \n"
+    "    '4:2:0'. The default is '4:4:4'.\n"
     "\n"
     "Returns\n"
     "-------\n"

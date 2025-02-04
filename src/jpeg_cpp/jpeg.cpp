@@ -73,6 +73,9 @@ namespace JPEG
             // No subsampling, H and V both 1
             comp_infos.emplace_back(0, 0, 0, 1, 1);
             break;
+        case Subsampling::ss_4_2_2:
+            comp_infos.emplace_back(0, 0, 0, 2, 1);
+            break;
         case Subsampling::ss_4_2_0:
             comp_infos.emplace_back(0, 0, 0, 2, 2);
             break;

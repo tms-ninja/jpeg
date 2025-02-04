@@ -172,6 +172,25 @@ class Test_encode_colour(unittest.TestCase):
 
             # Hard to say what a reasonable value for the expected mean difference is
             self.assertLess(mean_diff, 1.0)
+
+    def test_mean_diff_ss_4_2_2(self):
+        """Tests the mean difference between the original and encoded images using 4:2:2 subsampling"""
+
+        # Encode and then decode the pirate image
+        encoded_image = jpeg.encode_colour(*self.mandrill_img, ss="4:2:2")
+
+        with PIL.Image.open(io.BytesIO(encoded_image)) as im:
+            decoded_image = np.array(im)
+
+        decoded_image = tuple(decoded_image[:, :, i] for i in range(3))
+
+        # Now check the decoded image is similar to the original, component by component
+        for c_orig, c_dec in zip(self.mandrill_img, decoded_image):
+                
+            mean_diff = abs((c_dec.astype(np.float64) - c_orig.astype(np.float64)).mean())
+
+            # Hard to say what a reasonable value for the expected mean difference is
+            self.assertLess(mean_diff, 1.0)
     
     def test_reject_non_numpy_array(self):
         """Tests objects other than numpy arrays are rejected"""
