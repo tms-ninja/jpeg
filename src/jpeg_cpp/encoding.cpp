@@ -769,5 +769,54 @@ namespace JPEG
 
         return {Y_arr, U_arr, V_arr};
     }
+
+    void subsample_component_4_2_0(Array_2d<double>& component)
+    {
+        size_t height{ component.shape()[0] }, width{ component.shape()[1] };
+
+        // In 4:2:0 subsampling we average over 2x2 data unit sized blocks
+        // Check height and width are both multiples of 16
+        if (height % (2*du_height))
+        {
+            throw std::invalid_argument("Component height must be a multiple of 16 for 4:2:0 subsampling");
+        }
+        else if (width % (2*du_width))
+        {
+            throw std::invalid_argument("Component width must be a multiple of 16 for 4:2:0 subsampling");
+        }
+
+        // Perform the subsampling
+        Array_2d<double> component_ss{ height / 2, width / 2 };
+
+        for (size_t i = 0; i < component_ss.shape()[0]; i++)
+        {
+            for (size_t j = 0; j < component_ss.shape()[1]; j++)
+            {
+                component_ss(i, j) = (
+                    component(2*i,   2*j  ) +
+                    component(2*i,   2*j+1) +
+                    component(2*i+1, 2*j  ) +
+                    component(2*i+1, 2*j+1)
+                ) / 4.0;
+            }
+        }
+
+        component = std::move(component_ss);
+    }
+
+    void subsample_component(Array_2d<double>& component, Subsampling ss)
+    {
+        switch (ss)
+        {
+        case Subsampling::ss_4_4_4:
+            // 4:4:4 subsampling leaves component untouched
+            break;
+        case Subsampling::ss_4_2_0:
+            subsample_component_4_2_0(component);
+            break;
+        default:
+            throw std::invalid_argument("Unsupported subsampling");
+        }
+    }
 }
 

@@ -2869,3 +2869,50 @@ TEST_CASE( "colour_transform()::Check sample values", "[colour_transform()]" ) {
         CHECK( V[ind] == expected_V[ind] );
     }
 }
+
+TEST_CASE( "subsample_component_4_2_0()::Check valid components", "[subsample_component_4_2_0()]" ) {
+    Array_2d<double> input_array{ gen_array_2d_arange(16, 16) };
+    Array_2d<double> expected_result{
+        {  8.5,  10.5,  12.5,  14.5,  16.5,  18.5,  20.5,  22.5},
+        { 40.5,  42.5,  44.5,  46.5,  48.5,  50.5,  52.5,  54.5},
+        { 72.5,  74.5,  76.5,  78.5,  80.5,  82.5,  84.5,  86.5},
+        {104.5, 106.5, 108.5, 110.5, 112.5, 114.5, 116.5, 118.5},
+        {136.5, 138.5, 140.5, 142.5, 144.5, 146.5, 148.5, 150.5},
+        {168.5, 170.5, 172.5, 174.5, 176.5, 178.5, 180.5, 182.5},
+        {200.5, 202.5, 204.5, 206.5, 208.5, 210.5, 212.5, 214.5},
+        {232.5, 234.5, 236.5, 238.5, 240.5, 242.5, 244.5, 246.5}
+    };
+    size_t expected_height{ expected_result.shape()[0] }, expected_width{ expected_result.shape()[1] };
+
+    // subsample_component_4_2_0() acts in place so copy the input array
+    Array_2d<double> actual_result{ input_array };
+
+    subsample_component_4_2_0(actual_result);
+
+    REQUIRE( actual_result.shape()[0] == expected_height );
+    REQUIRE( actual_result.shape()[1] == expected_width );
+
+    for (size_t i = 0; i < expected_height; i++)
+    {
+        for (size_t j = 0; j < expected_width; j++)
+        {
+            CAPTURE( i, j );
+            CHECK_THAT( actual_result(i, j), WithinRel(expected_result(i, j)));
+        }
+    }
+}
+
+TEST_CASE( "subsample_component_4_2_0()::Check components with invalid shape", "[subsample_component_4_2_0()]" ) {
+    SECTION("Invalid height")
+    {
+        Array_2d<double> input_array{ gen_array_2d_arange(8, 16) };
+
+        CHECK_THROWS_AS( subsample_component_4_2_0(input_array), std::invalid_argument);
+    }
+    SECTION("Invalid width")
+    {
+        Array_2d<double> input_array{ gen_array_2d_arange(16, 8) };
+
+        CHECK_THROWS_AS( subsample_component_4_2_0(input_array), std::invalid_argument);
+    }
+}
