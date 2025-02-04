@@ -804,12 +804,48 @@ namespace JPEG
         component = std::move(component_ss);
     }
 
+    void subsample_component_4_2_2(Array_2d<double>& component)
+    {
+        size_t height{ component.shape()[0] }, width{ component.shape()[1] };
+
+        // In 4:2:0 subsampling we average over 1x2 data unit sized blocks, that is
+        // 1 pixel tall, 2 pixels wide
+        // Check height is multiple of 8, width mutliple of 16
+        if (height % du_height)
+        {
+            throw std::invalid_argument("Component height must be a multiple of 8 for 4:2:2 subsampling");
+        }
+        else if (width % (2*du_width))
+        {
+            throw std::invalid_argument("Component width must be a multiple of 16 for 4:2:2 subsampling");
+        }
+
+        // Perform the subsampling
+        Array_2d<double> component_ss{ height, width / 2 };
+
+        for (size_t i = 0; i < component_ss.shape()[0]; i++)
+        {
+            for (size_t j = 0; j < component_ss.shape()[1]; j++)
+            {
+                component_ss(i, j) = (
+                    component(i,   2*j  ) +
+                    component(i,   2*j+1)
+                ) / 2.0;
+            }
+        }
+
+        component = std::move(component_ss);
+    }
+
     void subsample_component(Array_2d<double>& component, Subsampling ss)
     {
         switch (ss)
         {
         case Subsampling::ss_4_4_4:
             // 4:4:4 subsampling leaves component untouched
+            break;
+        case Subsampling::ss_4_2_2:
+            subsample_component_4_2_2(component);
             break;
         case Subsampling::ss_4_2_0:
             subsample_component_4_2_0(component);
