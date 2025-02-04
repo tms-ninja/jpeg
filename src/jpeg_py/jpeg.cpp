@@ -5,6 +5,7 @@
 #include <array>
 #include <exception>
 #include <stdexcept>
+#include <string>
 
 // Numpy array API
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -160,6 +161,29 @@ void validate_quality_factor(int qf)
     }
 }
 
+/// @brief Gets the subsampling used
+/// @param ss_str Subsampling as a string
+/// @return Subsampling as a JPEG::Subsampling
+JPEG::Subsampling convert_subsampling_str(const std::string& ss_str)
+{
+    JPEG::Subsampling ss;
+
+    if (ss_str=="4:4:4")
+    {
+        ss = JPEG::Subsampling::ss_4_4_4;
+    }
+    else if (ss_str=="4:2:0")
+    {
+        ss = JPEG::Subsampling::ss_4_2_0;
+    }
+    else
+    {
+        throw_python_exception(PyExc_ValueError, "Invalid subsampling");
+    }
+
+    return ss;
+}
+
 /// @brief Wraps the C++ JPEG:encode_greyscale
 /// @param np_array Image data as a numpy array
 /// @param qf Quality factor
@@ -259,8 +283,11 @@ static PyObject *encode_greyscale(PyObject *self, PyObject *args, PyObject* kwar
 /// @param green_np Green image component as a numpy array
 /// @param blue_np Blue image component as a numpy array
 /// @param qf Quality factor
+/// @param ss_str Subsampling
 /// @return Encoded image as a Python bytes object
-PyObject* encode_colour_wrapper(PyObject* red_np, PyObject* green_np, PyObject* blue_np, int qf)
+PyObject* encode_colour_wrapper(
+    PyObject* red_np, PyObject* green_np, PyObject* blue_np, int qf, const std::string& ss_str
+)
 {
     JPEG::Array_2d<double> red, green, blue;
 
@@ -279,10 +306,12 @@ PyObject* encode_colour_wrapper(PyObject* red_np, PyObject* green_np, PyObject* 
 
     validate_quality_factor(qf);
 
+    JPEG::Subsampling ss{ convert_subsampling_str(ss_str) };
+
     // Perform the encoding
     std::vector<unsigned char> encoded_image;
 
-    encoded_image = JPEG::encode_colour_image(red, green, blue, qf);
+    encoded_image = JPEG::encode_colour_image(red, green, blue, qf, ss);
 
     // Now convert to a bytes object
     // note PyBytes_FromStringAndSize() returns null on failure and sets the Python error state
@@ -299,7 +328,8 @@ PyObject* encode_colour_wrapper(PyObject* red_np, PyObject* green_np, PyObject* 
 }
 
 PyDoc_STRVAR(encode_colour_docstring,
-    "encode_colour(red, green, blue, qf=50)\n"   // Include function's signature first 
+    // Include function's signature first 
+    "encode_colour(red, green, blue, qf=50, ss='4:4:4')\n"   
     "--\n\n"                                     // We need this "--\n\n" so Python knows the first line is the function signature
     "\n"
     "Encodes a colour image as a JPEG\n"
@@ -317,6 +347,9 @@ PyDoc_STRVAR(encode_colour_docstring,
     "    the Independent JPEG Group's algorithm. A value of 50 corresponds to\n"
     "    using the JPEG specification's suggested quantization tables. The\n"
     "    default is 50.\n"
+    "ss : str, optional\n"
+    "    Subsampling to perform, either '4:4:4' (no subsampling) or '4:2:0'. The\n"
+    "    default is '4:4:4'.\n"
     "\n"
     "Returns\n"
     "-------\n"
@@ -328,7 +361,8 @@ static PyObject *encode_colour(PyObject *self, PyObject *args, PyObject* kwargs)
     PyObject* red;
     PyObject* green;
     PyObject* blue;
-    int qf{ 50 };  // default value correpsonds to JPEG spec suggested tables
+    int qf{ 50 };   // default value correpsonds to JPEG spec suggested tables
+    const char* ss{ "4:4:4" };     // subsampling
 
     // Names of all arguments, including positional and keyword
     const char* keywords[] = {
@@ -336,6 +370,7 @@ static PyObject *encode_colour(PyObject *self, PyObject *args, PyObject* kwargs)
         "green",
         "blue",
         "qf",
+        "ss",
         nullptr
     };
 
@@ -343,15 +378,18 @@ static PyObject *encode_colour(PyObject *self, PyObject *args, PyObject* kwargs)
     // Python exception for up
     // Apparently using const_cast is appropriate here, PyArg_ParseTupleAndKeywords() shouldn't alter
     // keywords
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO|i", const_cast<char**>(keywords), &red, &green, &blue, &qf)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO|is", const_cast<char**>(keywords), &red, &green, &blue, &qf, &ss)) {
         return nullptr;
     }
+
+    // Set the subsampling string
+    std::string ss_str{ ss };
 
     PyObject* encoded_image{};
 
     try
     {
-        encoded_image = encode_colour_wrapper(red, green, blue, qf);
+        encoded_image = encode_colour_wrapper(red, green, blue, qf, ss_str);
     }
     catch(const Python_Exception& e)
     {
