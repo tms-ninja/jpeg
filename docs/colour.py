@@ -17,7 +17,8 @@ with PIL.Image.open(input_path) as im:
 # Unpack the image data
 r, g, b = [data[:, :, i] for i in range(3)]
 
-encoded_image = jpeg.encode_colour(r, g, b)
+# Encode using a quality factor of 90 and 4:2:0 subsampling
+encoded_image = jpeg.encode_colour(r, g, b, qf=90, ss="4:2:0")
 
 with open(output_path, 'wb') as f:
     f.write(encoded_image)
