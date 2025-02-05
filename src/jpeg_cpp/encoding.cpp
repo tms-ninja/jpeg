@@ -159,56 +159,25 @@ namespace JPEG
         return ssss+1;
     }
 
-    void encode_DC_coeff(Bit_String& bs, int diff, const Huff_Table& huff_table)
+    void encode_DC_coeff(std::vector<Coefficient>& coeffs, int diff, size_t comp_ind)
     {
         unsigned int ssss{ compute_ssss(std::abs(diff)) };
-        
-        // Append the Huffman code corresponding to the ssss value
-        bs.extend(huff_table[ssss]);
 
-        // Now need to append last ssss bits of:
-        // - diff if diff>0
-        // - (diff-1) if diff<0
-        // Note the spec says diff should be represented in 12 bit two's-complement.
-        // The two's-complement of a negative number can therefore be computed as 
-        // (~n) + 1. Note the two's-complement of 0 is 0.
-        // So for the cas of diff<0 we can just append last ssss bits of ~diff.
-        // Since diff=0 corresponds to ssss=0, we don't need to worry about it
-        if (diff==0)
-        {
-            return;
-        }
-
-        if (diff>0)
-        {
-            bs.append_last_ssss_bits(diff, ssss);
-        }
-        else
-        {
-            bs.append_last_ssss_bits(~static_cast<unsigned int>(-diff), ssss);
-        }
+        coeffs.emplace_back(diff, ssss, Coefficient::Coefficient_Type::DC, comp_ind);
     }
     
-    void encode_AC_coeff(Bit_String& bs, int coeff, unsigned int rrrr, const Huff_Table& huff_table)
+    void encode_AC_coeff(std::vector<Coefficient>& coeffs, int ac, unsigned int rrrr, size_t comp_ind)
     {
-        assert("coeff should not be zero" && coeff!=0);
+        assert("coeff should not be zero" && ac!=0);
         assert("rrrr must be less than 16" && rrrr<16);
 
-        unsigned int ssss{ compute_ssss(std::abs(coeff)) };
+        unsigned int ssss{ compute_ssss(std::abs(ac)) };
         unsigned int rrrrssss{ (rrrr << 4) + ssss };
 
-        // Append the Huffman code encoding rrrrssss to the output
-        bs.extend(huff_table[rrrrssss]);
-
-        // Like with the DC coefficient we need to simply append last ssss bits of ac_coeff
-        // if ac_coeff>0 or ~(-ac_coeff) if it's negative
-        unsigned int value_to_encode{ coeff>0 ? coeff : ~static_cast<unsigned int>(-coeff) };
-
-        bs.append_last_ssss_bits(value_to_encode, ssss);
+        coeffs.emplace_back(ac, rrrrssss, Coefficient::Coefficient_Type::AC, comp_ind);
     }
 
-    void encode_AC_coeffs(Bit_String& bs, const DU_Array<double>& du_array, size_t du_ind,
-                            const Huff_Table& huff_table)
+    void encode_AC_coeffs(std::vector<Coefficient>& coeffs, const DU_Array<double>& du_array, size_t du_ind, size_t comp_ind)
     {
         // Offsets for the zig-zag pattern
         const auto& zz{ zig_zag_order };
@@ -235,7 +204,8 @@ namespace JPEG
                 if (k==63)
                 {
                     // No more values to encode, encode EOB
-                    bs.extend(huff_table[end_of_block]);
+                    // Use dummy value of zero as note bits from it are encoded
+                    coeffs.emplace_back(0, end_of_block, Coefficient::Coefficient_Type::AC, comp_ind);
                 }
 
                 r++;
@@ -247,20 +217,21 @@ namespace JPEG
             while (r>15)
             {
                 // Encode ZRL
-                bs.extend(huff_table[zrl]);
+                // Use dummy value of zero as note bits from it are encoded
+                coeffs.emplace_back(0, zrl, Coefficient::Coefficient_Type::AC, comp_ind);
                 r -= 16;
             }
 
             // Now encode the current, non-zero coefficient
-            encode_AC_coeff(bs, value_to_encode, static_cast<unsigned char>(r), huff_table);
+            encode_AC_coeff(coeffs, value_to_encode, static_cast<unsigned char>(r), comp_ind);
 
             // Reset the run length of zeros
             r = 0;
         }
     }
 
-    int encode_data_unit_sequential(Bit_String& bs, const DU_Array<double>& du_array, size_t du_ind, int prev_dc,
-                        const Huff_Table& huff_table_dc, const Huff_Table& huff_table_ac)
+    int encode_data_unit_sequential(std::vector<Coefficient>& coeffs, const DU_Array<double>& du_array, size_t du_ind, int prev_dc,
+        size_t comp_ind)
     {
         // First encode the DC coefficient
         int dc_coeff{ static_cast<int>(du_array(du_ind, 0, 0)) };
@@ -268,10 +239,12 @@ namespace JPEG
         // is encoded
         int dc_diff{ dc_coeff-prev_dc };
 
-        encode_DC_coeff(bs, dc_diff, huff_table_dc);
+        // encode_DC_coeff(bs, dc_diff, huff_table_dc);
+        encode_DC_coeff(coeffs, dc_diff, comp_ind);
 
         // Now encode the AC coefficients
-        encode_AC_coeffs(bs, du_array, du_ind, huff_table_ac);
+        // encode_AC_coeffs(bs, du_array, du_ind, huff_table_ac);
+        encode_AC_coeffs(coeffs, du_array, du_ind, comp_ind);
 
         return dc_coeff;
     }
@@ -314,8 +287,8 @@ namespace JPEG
         }
     }
 
-    void append_mcu(Bit_String& bs, std::vector<int>& prev_dc, std::vector<size_t>& du_ind, const std::vector<DU_Array<double>>& arrays, 
-        const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables)
+    void append_mcu(std::vector<Coefficient>& coeffs, std::vector<int>& prev_dc, std::vector<size_t>& du_ind, const std::vector<DU_Array<double>>& arrays, 
+        const std::vector<Comp_Info>& comp_infos)
     {
         // Iterate over each component adding however many data units we need from it
         for (size_t comp_ind = 0; comp_ind < arrays.size(); comp_ind++)
@@ -329,12 +302,11 @@ namespace JPEG
                 // encode the current data unit and update the current
                 // DC coeff for the current component
                 prev_dc[comp_ind] = encode_data_unit_sequential(
-                    bs, 
+                    coeffs, 
                     data_units, 
                     du_ind[comp_ind],
                     prev_dc[comp_ind],
-                    dc_tables[comp_infos[comp_ind].DC_Huff_table_ind],
-                    ac_tables[comp_infos[comp_ind].AC_Huff_table_ind]
+                    comp_ind
                 );
 
                 // Move on to next data unit
@@ -515,13 +487,49 @@ namespace JPEG
         
         // Entropy encode each MCU in turn
         // Note previous DC should be initialized to 0
-        Bit_String bs;
         std::vector<int> prev_dc(arrays.size());
         std::vector<size_t> du_ind(arrays.size());
 
+        std::vector<Coefficient> encoded_coeffs;
+
         while (du_ind[0]<arrays[0].shape()[0])
         {
-            append_mcu(bs, prev_dc, du_ind, arrays, comp_infos, dc_tables, ac_tables);
+            append_mcu(encoded_coeffs, prev_dc, du_ind, arrays, comp_infos);
+        }
+
+        // Now need encode the bit string
+        Bit_String bs;
+
+        for (auto &coeff : encoded_coeffs)
+        {
+            size_t comp_ind{ coeff.comp_ind };
+
+            if (coeff.type==Coefficient::Coefficient_Type::DC)
+            {
+                const Huff_Table& table{ dc_tables[comp_infos[comp_ind].DC_Huff_table_ind] };
+                bs.extend(table[coeff.RS]);
+            }
+            else
+            {
+                const Huff_Table& table{ ac_tables[comp_infos[comp_ind].AC_Huff_table_ind] };
+                bs.extend(table[coeff.RS]);
+            }
+            
+            unsigned int ssss{ 0xFU & coeff.RS };
+            
+            // Note the spec says diff should be represented in 12 bit two's-complement.
+            // The two's-complement of a negative number can therefore be computed as 
+            // (~n) + 1. Note the two's-complement of 0 is 0.
+            // So for the cas of diff<0 we can just append last ssss bits of ~diff.
+            // Since diff=0 corresponds to ssss=0, we don't need to worry about it
+            if (coeff.value>0)
+            {
+                bs.append_last_ssss_bits(coeff.value, ssss);
+            }
+            else
+            {
+                bs.append_last_ssss_bits(~static_cast<unsigned int>(-coeff.value), ssss);
+            }
         }
 
         // Now need to add padding if necessary and then perform byte stuffing

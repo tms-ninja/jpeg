@@ -414,339 +414,406 @@ TEST_CASE( "compute_ssss()::computes the ssss value of a number", "[compute_ssss
 }
 
 TEST_CASE( "encode_DC_coeff()::encodes a DC coefficient correctly", "[encode_DC_coeff()]" ) {
-    Huff_Table huff_table{ Huff_Table::load_DC_table(Image_Component::Luminance) };
-    Bit_String actual_result{};
+    std::vector<Coefficient> actual_result;
+    unsigned int comp_ind{ 0 };
 
     SECTION( "diff = 0")
     {
         int diff{ 0 };
-        Bit_String expected_result{ "00" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(0, 0, Coefficient::Coefficient_Type::DC, 0)
+        };
         
-        encode_DC_coeff(actual_result, diff, huff_table);
+        encode_DC_coeff(actual_result, diff, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "diff = 1")
     {
         int diff{ 1 };
-        Bit_String expected_result{ "0101" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(1, 1, Coefficient::Coefficient_Type::DC, 0)
+        };
         
-        encode_DC_coeff(actual_result, diff, huff_table);
+        encode_DC_coeff(actual_result, diff, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "diff = -1")
     {
         int diff{ -1 };
-        Bit_String expected_result{ "0100" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(-1, 1, Coefficient::Coefficient_Type::DC, 0)
+        };
         
-        encode_DC_coeff(actual_result, diff, huff_table);
+        encode_DC_coeff(actual_result, diff, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "diff = 2")
     {
         int diff{ 2 };
-        Bit_String expected_result{ "01110" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(2, 2, Coefficient::Coefficient_Type::DC, 0)
+        };
         
-        encode_DC_coeff(actual_result, diff, huff_table);
+        encode_DC_coeff(actual_result, diff, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "diff = -2")
     {
         int diff{ -2 };
-        Bit_String expected_result{ "01101" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(-2, 2, Coefficient::Coefficient_Type::DC, 0)
+        };
         
-        encode_DC_coeff(actual_result, diff, huff_table);
+        encode_DC_coeff(actual_result, diff, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "diff = 5")
     {
         int diff{ 5 };
-        Bit_String expected_result{ "100101" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(5, 3, Coefficient::Coefficient_Type::DC, 0)
+        };
         
-        encode_DC_coeff(actual_result, diff, huff_table);
+        encode_DC_coeff(actual_result, diff, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "diff = -5")
     {
         int diff{ -5 };
-        Bit_String expected_result{ "100010" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(-5, 3, Coefficient::Coefficient_Type::DC, 0)
+        };
         
-        encode_DC_coeff(actual_result, diff, huff_table);
+        encode_DC_coeff(actual_result, diff, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "diff = 2047")
     {
         int diff{ 2047 };
-        Bit_String expected_result{ "11111111011111111111" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(2047, 11, Coefficient::Coefficient_Type::DC, 0)
+        };
         
-        encode_DC_coeff(actual_result, diff, huff_table);
+        encode_DC_coeff(actual_result, diff, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "diff = -2047")
     {
         int diff{ -2047 };
-        Bit_String expected_result{ "11111111000000000000" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(-2047, 11, Coefficient::Coefficient_Type::DC, 0)
+        };
         
-        encode_DC_coeff(actual_result, diff, huff_table);
+        encode_DC_coeff(actual_result, diff, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
 }
 
 TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 0", "[encode_AC_coeff()]" ) {
-    Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
-    Bit_String actual_result{};
+    std::vector<Coefficient> actual_result;
     unsigned int rrrr{ 0 };
+    unsigned int comp_ind{ 0 };
 
     SECTION( "rrrr = 0, coeff = 1")
     {
         int coeff{ 1 };
-        Bit_String expected_result{ "001" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(1, 1, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "rrrr = 0, coeff = -1")
     {
         int coeff{ -1 };
-        Bit_String expected_result{ "000" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(-1, 1, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "rrrr = 0, coeff = 2")
     {
         int coeff{ 2 };
-        Bit_String expected_result{ "0110" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(2, 2, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "rrrr = 0, coeff = -2")
     {
         int coeff{ -2 };
-        Bit_String expected_result{ "0101" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(-2, 2, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "rrrr = 0, coeff = 5")
     {
         int coeff{ 5 };
-        Bit_String expected_result{ "100101" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(5, 3, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "rrrr = 0, coeff = -5")
     {
         int coeff{ -5 };
-        Bit_String expected_result{ "100010" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(-5, 3, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
 
     // Note maximum ssss for AC coefficients is 10, unlike for DC coefficients where it's 11
     SECTION( "rrrr = 0, coeff = 1023")
     {
         int coeff{ 1023 };
-        Bit_String expected_result{ "11111111100000111111111111" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(1023, 10, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "rrrr = 0, coeff = -1023")
     {
         int coeff{ -1023 };
-        Bit_String expected_result{ "11111111100000110000000000" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(-1023, 10, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
 }
 
 TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 5", "[encode_AC_coeff()]" ) {
     Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
-    Bit_String actual_result{};
+    std::vector<Coefficient> actual_result{};
     unsigned int rrrr{ 5 };
+    unsigned int comp_ind{ 0 };
 
     SECTION( "rrrr = 5, coeff = 1")
     {
         int coeff{ 1 };
-        Bit_String expected_result{ "11110101" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(1, 0x51, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "rrrr = 5, coeff = -1")
     {
         int coeff{ -1 };
-        Bit_String expected_result{ "11110100" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(-1, 0x51, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "rrrr = 5, coeff = 2")
     {
         int coeff{ 2 };
-        Bit_String expected_result{ "1111111011110" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(2, 0x52, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "rrrr = 5, coeff = -2")
     {
         int coeff{ -2 };
-        Bit_String expected_result{ "1111111011101" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(-2, 0x52, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "rrrr = 5, coeff = 5")
     {
         int coeff{ 5 };
-        Bit_String expected_result{ "1111111110011110101" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(5, 0x53, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "rrrr = 5, coeff = -5")
     {
         int coeff{ -5 };
-        Bit_String expected_result{ "1111111110011110010" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(-5, 0x53, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
 
     // Note maximum ssss for AC coefficients is 10, unlike for DC coefficients where it's 11
     SECTION( "rrrr = 5, coeff = 1023")
     {
         int coeff{ 1023 };
-        Bit_String expected_result{ "11111111101001011111111111" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(1023, 0x5A, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "rrrr = 5, coeff = -1023")
     {
         int coeff{ -1023 };
-        Bit_String expected_result{ "11111111101001010000000000" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(-1023, 0x5A, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
 }
 
 TEST_CASE( "encode_AC_coeff()::correctly encodes for rrrr = 15", "[encode_AC_coeff()]" ) {
-    Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
-    Bit_String actual_result{};
+    std::vector<Coefficient> actual_result{};
     unsigned int rrrr{ 15 };
+    unsigned int comp_ind{ 0 };
 
     SECTION( "rrrr = 15, coeff = 1")
     {
         int coeff{ 1 };
-        Bit_String expected_result{ "11111111111101011" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(1, 0xF1, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "rrrr = 15, coeff = -1")
     {
         int coeff{ -1 };
-        Bit_String expected_result{ "11111111111101010" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(-1, 0xF1, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "rrrr = 15, coeff = 2")
     {
         int coeff{ 2 };
-        Bit_String expected_result{ "111111111111011010" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(2, 0xF2, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "rrrr = 15, coeff = -2")
     {
         int coeff{ -2 };
-        Bit_String expected_result{ "111111111111011001" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(-2, 0xF2, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "rrrr = 15, coeff = 5")
     {
         int coeff{ 5 };
-        Bit_String expected_result{ "1111111111110111101" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(5, 0xF3, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "rrrr = 15, coeff = -5")
     {
         int coeff{ -5 };
-        Bit_String expected_result{ "1111111111110111010" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(-5, 0xF3, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
 
     // Note maximum ssss for AC coefficients is 10, unlike for DC coefficients where it's 11
     SECTION( "rrrr = 15, coeff = 1023")
     {
         int coeff{ 1023 };
-        Bit_String expected_result{ "11111111111111101111111111" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(1023, 0xFA, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "rrrr = 15, coeff = -1023")
     {
         int coeff{ -1023 };
-        Bit_String expected_result{ "11111111111111100000000000" };
+        std::vector<Coefficient> expected_result{ 
+            Coefficient(-1023, 0xFA, Coefficient::Coefficient_Type::AC, 0)
+        };
         
-        encode_AC_coeff(actual_result, coeff, rrrr, huff_table);
+        encode_AC_coeff(actual_result, coeff, rrrr, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
 }
 
 TEST_CASE( "encode_AC_coeffs()::all entries the same", "[encode_AC_coeffs()]" ) {
-    Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
     size_t du_ind{ 0 };
-    Bit_String actual_result{};
+    std::vector<Coefficient> actual_result;
+    unsigned int comp_ind{ 0 };
 
     SECTION( "all entries zero") {
         DU_Array<double> input_array{{
@@ -760,95 +827,99 @@ TEST_CASE( "encode_AC_coeffs()::all entries the same", "[encode_AC_coeffs()]" ) 
             {0, 0, 0, 0, 0, 0, 0, 0},
         }};
         
-        Bit_String expected_result{"1010"};
-
-        encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
-
-        CHECK( actual_result == expected_result );
-    }
-    SECTION( "all entries 1") {
-        DU_Array<double> input_array{{
-            {1, 1, 1, 1, 1, 1, 1, 1},
-            {1, 1, 1, 1, 1, 1, 1, 1},
-            {1, 1, 1, 1, 1, 1, 1, 1},
-            {1, 1, 1, 1, 1, 1, 1, 1},
-            {1, 1, 1, 1, 1, 1, 1, 1},
-            {1, 1, 1, 1, 1, 1, 1, 1},
-            {1, 1, 1, 1, 1, 1, 1, 1},
-            {1, 1, 1, 1, 1, 1, 1, 1},
-        }};
-        // Expected to be 001 repeated 63 times
-        Bit_String expected_result{
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
-            "001"
+        std::vector<Coefficient>  expected_result{
+            // End of block marker corresponds to 0x00
+            Coefficient(0, 0x00, Coefficient::Coefficient_Type::AC, 0)
         };
 
-        encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+        encode_AC_coeffs(actual_result, input_array, du_ind, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
     SECTION( "all entries 1") {
+        DU_Array<double> input_array{{
+            {1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1},
+        }};
+
+        // Expected to be a 1 repeated 63 times
+        std::vector<Coefficient>  expected_result{
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(1, 0x01, Coefficient::Coefficient_Type::AC, 0)
+        };
+
+        encode_AC_coeffs(actual_result, input_array, du_ind, comp_ind);
+
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
+    }
+    SECTION( "all entries -1") {
         DU_Array<double> input_array{{
             {-1, -1, -1, -1, -1, -1, -1, -1},
             {-1, -1, -1, -1, -1, -1, -1, -1},
@@ -859,82 +930,84 @@ TEST_CASE( "encode_AC_coeffs()::all entries the same", "[encode_AC_coeffs()]" ) 
             {-1, -1, -1, -1, -1, -1, -1, -1},
             {-1, -1, -1, -1, -1, -1, -1, -1},
         }};
+
         // Expected to be 000 repeated 63 times
-        Bit_String expected_result{
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
-            "000"
+        std::vector<Coefficient>  expected_result{
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),
+            Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0)
         };
 
-        encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+        encode_AC_coeffs(actual_result, input_array, du_ind, comp_ind);
 
-        CHECK( actual_result == expected_result );
+        CHECK_THAT( actual_result, RangeEquals(expected_result) );
     }
 }
 
 TEST_CASE( "encode_AC_coeffs()::zig-zag ordering", "[encode_AC_coeffs()]" ) {
     Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
     size_t du_ind{ 0 };
+    unsigned int comp_ind{ 0 };
     
     DU_Array<double> input_array{{
         {0, 1, 5, 0, 0, 0, 0, 0},
@@ -947,25 +1020,27 @@ TEST_CASE( "encode_AC_coeffs()::zig-zag ordering", "[encode_AC_coeffs()]" ) {
         {0, 0, 0, 0, 0, 0, 0, 0},
     }};
 
-    Bit_String expected_result{
-        "001"     // 1
-        "0110"    // 2
-        "0111"    // 3
-        "100100"  // 4
-        "100101"  // 5
-        "1010"    // EOB
+    std::vector<Coefficient> expected_result{
+        Coefficient(1, 1, Coefficient::Coefficient_Type::AC, 0),
+        Coefficient(2, 2, Coefficient::Coefficient_Type::AC, 0),
+        Coefficient(3, 2, Coefficient::Coefficient_Type::AC, 0),
+        Coefficient(4, 3, Coefficient::Coefficient_Type::AC, 0),
+        Coefficient(5, 3, Coefficient::Coefficient_Type::AC, 0),
+        // End of block marker corresponds to 0x00
+        Coefficient(0, 0x00, Coefficient::Coefficient_Type::AC, 0)
     };
-    
-    Bit_String actual_result{};
 
-    encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+    std::vector<Coefficient> actual_result{};
 
-    CHECK( actual_result == expected_result );
+    encode_AC_coeffs(actual_result, input_array, du_ind, comp_ind);
+
+    CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
 
 TEST_CASE( "encode_AC_coeffs()::run of 1 zero", "[encode_AC_coeffs()]" ) {
     Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
     size_t du_ind{ 0 };
+    unsigned int comp_ind{ 0 };
     
     DU_Array<double> input_array{{
         {0, 1, 0, 0, 0, 0, 0, 0},
@@ -978,22 +1053,25 @@ TEST_CASE( "encode_AC_coeffs()::run of 1 zero", "[encode_AC_coeffs()]" ) {
         {0, 0, 0, 0, 0, 0, 0, 0},
     }};
 
-    Bit_String expected_result{
-        "001"    // 1
-        "11001"  // 1, with run of 1 zero
-        "1010"   // EOB
+    std::vector<Coefficient> expected_result{
+        Coefficient(1, 1, Coefficient::Coefficient_Type::AC, 0),
+        // 1 with a run of 1 zeros
+        Coefficient(1, 0x11, Coefficient::Coefficient_Type::AC, 0),
+        // End of block marker corresponds to 0x00
+        Coefficient(0, 0x00, Coefficient::Coefficient_Type::AC, 0)
     };
-    
-    Bit_String actual_result{};
 
-    encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+    std::vector<Coefficient> actual_result{};
 
-    CHECK( actual_result == expected_result );
+    encode_AC_coeffs(actual_result, input_array, du_ind, comp_ind);
+
+    CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
 
 TEST_CASE( "encode_AC_coeffs()::run of 5 zeros", "[encode_AC_coeffs()]" ) {
     Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
     size_t du_ind{ 0 };
+    unsigned int comp_ind{ 0 };
     
     DU_Array<double> input_array{{
         {0, 1, 0, 0, 0, 0, 0, 0},
@@ -1006,22 +1084,25 @@ TEST_CASE( "encode_AC_coeffs()::run of 5 zeros", "[encode_AC_coeffs()]" ) {
         {0, 0, 0, 0, 0, 0, 0, 0},
     }};
 
-    Bit_String expected_result{
-        "001"       // 1
-        "11110101"  // 1, with run of 5 zeros
-        "1010"      // EOB
+    std::vector<Coefficient> expected_result{
+        Coefficient(1, 1, Coefficient::Coefficient_Type::AC, 0),
+        // 1 with a run of 1 zeros
+        Coefficient(1, 0x51, Coefficient::Coefficient_Type::AC, 0),
+        // End of block marker corresponds to 0x00
+        Coefficient(0, 0x00, Coefficient::Coefficient_Type::AC, 0)
     };
-    
-    Bit_String actual_result{};
 
-    encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+    std::vector<Coefficient> actual_result{};
 
-    CHECK( actual_result == expected_result );
+    encode_AC_coeffs(actual_result, input_array, du_ind, comp_ind);
+
+    CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
 
 TEST_CASE( "encode_AC_coeffs()::run of 15 zeros", "[encode_AC_coeffs()]" ) {
     Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
     size_t du_ind{ 0 };
+    unsigned int comp_ind{ 0 };
     
     DU_Array<double> input_array{{
         {0, 1, 0, 0, 0, 0, 0, 0},
@@ -1033,23 +1114,26 @@ TEST_CASE( "encode_AC_coeffs()::run of 15 zeros", "[encode_AC_coeffs()]" ) {
         {0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0},
     }};
-
-    Bit_String expected_result{
-        "001"                // 1
-        "11111111111101011"  // 1, with run of 15 zeros
-        "1010"               // EOB
-    };
     
-    Bit_String actual_result{};
+    std::vector<Coefficient> expected_result{
+        Coefficient(1, 1, Coefficient::Coefficient_Type::AC, 0),
+        // 1 with a run of 15 zeros
+        Coefficient(1, 0xF1, Coefficient::Coefficient_Type::AC, 0),
+        // End of block marker corresponds to 0x00
+        Coefficient(0, 0x00, Coefficient::Coefficient_Type::AC, 0)
+    };
 
-    encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+    std::vector<Coefficient> actual_result{};
 
-    CHECK( actual_result == expected_result );
+    encode_AC_coeffs(actual_result, input_array, du_ind, comp_ind);
+
+    CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
 
 TEST_CASE( "encode_AC_coeffs()::run of 16 zeros", "[encode_AC_coeffs()]" ) {
     Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
     size_t du_ind{ 0 };
+    unsigned int comp_ind{ 0 };
     
     DU_Array<double> input_array{{
         {0, 1, 0, 0, 0, 0, 0, 0},
@@ -1062,23 +1146,26 @@ TEST_CASE( "encode_AC_coeffs()::run of 16 zeros", "[encode_AC_coeffs()]" ) {
         {0, 0, 0, 0, 0, 0, 0, 0},
     }};
 
-    Bit_String expected_result{
-        "001"          // 1
-        "11111111001"  // ZRL (run of 16 zeros)
-        "001"          // 1
-        "1010"         // EOB
+    std::vector<Coefficient> expected_result{
+        Coefficient(1, 1, Coefficient::Coefficient_Type::AC, 0),
+        // Run of 16 zeros encoded as a ZRL
+        Coefficient(0, 0xF0, Coefficient::Coefficient_Type::AC, 0),
+        // 1 with a run of 0 zeros
+        Coefficient(1, 1, Coefficient::Coefficient_Type::AC, 0),
+        // End of block marker corresponds to 0x00
+        Coefficient(0, 0x00, Coefficient::Coefficient_Type::AC, 0)
     };
-    
-    Bit_String actual_result{};
 
-    encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+    std::vector<Coefficient> actual_result{};
 
-    CHECK( actual_result == expected_result );
+    encode_AC_coeffs(actual_result, input_array, du_ind, comp_ind);
+
+    CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
 
 TEST_CASE( "encode_AC_coeffs()::run of 17 zeros", "[encode_AC_coeffs()]" ) {
-    Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
     size_t du_ind{ 0 };
+    unsigned int comp_ind{ 0 };
     
     DU_Array<double> input_array{{
         {0, 1, 0, 0, 0, 0, 0, 0},
@@ -1090,24 +1177,28 @@ TEST_CASE( "encode_AC_coeffs()::run of 17 zeros", "[encode_AC_coeffs()]" ) {
         {0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0},
     }};
-
-    Bit_String expected_result{
-        "001"          // 1
-        "11111111001"  // ZRL (run of 16 zeros)
-        "11001"        // 1, with run of 1 zero
-        "1010"         // EOB
-    };
     
-    Bit_String actual_result{};
+    std::vector<Coefficient> expected_result{
+        Coefficient(1, 1, Coefficient::Coefficient_Type::AC, 0),
+        // Run of 16 zeros encoded as a ZRL
+        Coefficient(0, 0xF0, Coefficient::Coefficient_Type::AC, 0),
+        // 1 with a run of 1 zeros
+        Coefficient(1, 0x11, Coefficient::Coefficient_Type::AC, 0),
+        // End of block marker corresponds to 0x00
+        Coefficient(0, 0x00, Coefficient::Coefficient_Type::AC, 0)
+    };
 
-    encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+    std::vector<Coefficient> actual_result{};
 
-    CHECK( actual_result == expected_result );
+    encode_AC_coeffs(actual_result, input_array, du_ind, comp_ind);
+
+    CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
 
 TEST_CASE( "encode_AC_coeffs()::run of 32 zeros", "[encode_AC_coeffs()]" ) {
     Huff_Table huff_table{ Huff_Table::load_AC_table(Image_Component::Luminance) };
     size_t du_ind{ 0 };
+    unsigned int comp_ind{ 0 };
     
     DU_Array<double> input_array{{
         {0, 1, 0, 0, 0, 0, 0, 0},
@@ -1119,27 +1210,30 @@ TEST_CASE( "encode_AC_coeffs()::run of 32 zeros", "[encode_AC_coeffs()]" ) {
         {0, 1, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0},
     }};
-
-    Bit_String expected_result{
-        "001"          // 1
-        "11111111001"  // ZRL (run of 16 zeros)
-        "11111111001"  // ZRL (run of 16 zeros)
-        "001"          // 1
-        "1010"         // EOB
-    };
     
-    Bit_String actual_result{};
+    std::vector<Coefficient> expected_result{
+        Coefficient(1, 1, Coefficient::Coefficient_Type::AC, 0),
+        // Run of 16 zeros encoded as a ZRL
+        Coefficient(0, 0xF0, Coefficient::Coefficient_Type::AC, 0),
+        // Run of 16 zeros encoded as a ZRL
+        Coefficient(0, 0xF0, Coefficient::Coefficient_Type::AC, 0),
+        // 1 with a run of 0 zeros
+        Coefficient(1, 1, Coefficient::Coefficient_Type::AC, 0),
+        // End of block marker corresponds to 0x00
+        Coefficient(0, 0x00, Coefficient::Coefficient_Type::AC, 0)
+    };
 
-    encode_AC_coeffs(actual_result, input_array, du_ind, huff_table);
+    std::vector<Coefficient> actual_result;
 
-    CHECK( actual_result == expected_result );
+    encode_AC_coeffs(actual_result, input_array, du_ind, comp_ind);
+
+    CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
 
 TEST_CASE( "encode_data_unit_sequential()::encode sample data unit", "[encode_data_unit_sequential()]" ) {
-    Huff_Table huff_dc{ Huff_Table::load_DC_table(Image_Component::Luminance) };
-    Huff_Table huff_ac{ Huff_Table::load_AC_table(Image_Component::Luminance) };
     size_t du_ind{ 0 };
     int prev_dc{ 0 };
+    unsigned int comp_ind{ 0 };
 
     // Corresponds to the Wikipedia example using the Wikipedia quantization table
     DU_Array<double> input_array{{
@@ -1153,35 +1247,36 @@ TEST_CASE( "encode_data_unit_sequential()::encode sample data unit", "[encode_da
         { -0.,   0.,  -0.,  -0.,  -0.,  -0.,   0.,   0.}
     }};
 
-    Bit_String expected_result{
-        "11000101"  // -26, ssss=5
-        "0100"      // -3, rs = 0, 2
-        "1101100"   // -3, rs = 1, 2
-        "0101"      // -2  rs = 0, 2
-        "100001"    // -6  rs = 0, 3
-        "0110"      //  2  rs = 0, 2
-        "100011"    // -4  rs = 0, 3
-        "001"       //  1  rs = 0, 1
-        "0100"      // -3  rs = 0, 2
-        "001"       //  1  rs = 0, 1
-        "001"       //  1  rs = 0, 1
-        "100101"    //  5  rs = 0, 3
-        "001"       //  1  rs = 0, 1
-        "0110"      //  2  rs = 0, 2
-        "000"       // -1  rs = 0, 1
-        "001"       //  1  rs = 0, 1
-        "000"       // -1  rs = 0, 1
-        "0110"      //  2  rs = 0, 2
-        "11110100"  // -1  rs = 5, 1
-        "000"       // -1  rs = 0, 1
-        "1010"      // EOB
+    std::vector<Coefficient> expected_result{
+        Coefficient(-26, 5, Coefficient::Coefficient_Type::DC, 0),    // -26, ssss=5
+        Coefficient(-3, 0x02, Coefficient::Coefficient_Type::AC, 0),  // -3, rs = 0, 2
+        Coefficient(-3, 0x12, Coefficient::Coefficient_Type::AC, 0),  // -3, rs = 1, 2
+        Coefficient(-2, 0x02, Coefficient::Coefficient_Type::AC, 0),  // -2  rs = 0, 2
+        Coefficient(-6, 0x03, Coefficient::Coefficient_Type::AC, 0),  // -6  rs = 0, 3
+        Coefficient( 2, 0x02, Coefficient::Coefficient_Type::AC, 0),  //  2  rs = 0, 2
+        Coefficient(-4, 0x03, Coefficient::Coefficient_Type::AC, 0),  // -4  rs = 0, 3
+        Coefficient( 1, 0x01, Coefficient::Coefficient_Type::AC, 0),  //  1  rs = 0, 1
+        Coefficient(-3, 0x02, Coefficient::Coefficient_Type::AC, 0),  // -3  rs = 0, 2
+        Coefficient( 1, 0x01, Coefficient::Coefficient_Type::AC, 0),  //  1  rs = 0, 1
+        Coefficient( 1, 0x01, Coefficient::Coefficient_Type::AC, 0),  //  1  rs = 0, 1
+        Coefficient( 5, 0x03, Coefficient::Coefficient_Type::AC, 0),  //  5  rs = 0, 3
+        Coefficient( 1, 0x01, Coefficient::Coefficient_Type::AC, 0),  //  1  rs = 0, 1
+        Coefficient( 2, 0x02, Coefficient::Coefficient_Type::AC, 0),  //  2  rs = 0, 2
+        Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),  // -1  rs = 0, 1
+        Coefficient( 1, 0x01, Coefficient::Coefficient_Type::AC, 0),  //  1  rs = 0, 1
+        Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),  // -1  rs = 0, 1
+        Coefficient( 2, 0x02, Coefficient::Coefficient_Type::AC, 0),  //  2  rs = 0, 2
+        Coefficient(-1, 0x51, Coefficient::Coefficient_Type::AC, 0),  // -1  rs = 5, 1
+        Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),  // -1  rs = 0, 1
+        // End of block marker corresponds to 0x00
+        Coefficient(0, 0x00, Coefficient::Coefficient_Type::AC, 0)
     };
 
-    Bit_String actual_result{};
+    std::vector<Coefficient> actual_result;
 
-    encode_data_unit_sequential(actual_result, input_array, du_ind, prev_dc, huff_dc, huff_ac);
+    encode_data_unit_sequential(actual_result, input_array, du_ind, prev_dc, comp_ind);
 
-    CHECK( actual_result == expected_result );
+    CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
 
 TEST_CASE( "append_q_table_marker_segment()::single quantization table", "[append_q_table_marker_segment()]" ) {
@@ -1572,8 +1667,6 @@ TEST_CASE( "append_mcu()::single component", "[append_mcu()]" ) {
             1   // V sampling factor
         )
     };
-    std::vector<Huff_Table> huff_dc{ Huff_Table::load_DC_table(Image_Component::Luminance) };
-    std::vector<Huff_Table> huff_ac{ Huff_Table::load_AC_table(Image_Component::Luminance) };
 
     // Corresponds to the Wikipedia example using the Wikipedia quantization table
     std::vector<DU_Array<double>> input_array{{
@@ -1600,64 +1693,66 @@ TEST_CASE( "append_mcu()::single component", "[append_mcu()]" ) {
 
     }};
 
-    Bit_String expected_result{
+    std::vector<Coefficient> expected_result{
         // First data unit
-        "11000101"  // -26, ssss=5
-        "0100"      // -3, rs = 0, 2
-        "1101100"   // -3, rs = 1, 2
-        "0101"      // -2  rs = 0, 2
-        "100001"    // -6  rs = 0, 3
-        "0110"      //  2  rs = 0, 2
-        "100011"    // -4  rs = 0, 3
-        "001"       //  1  rs = 0, 1
-        "0100"      // -3  rs = 0, 2
-        "001"       //  1  rs = 0, 1
-        "001"       //  1  rs = 0, 1
-        "100101"    //  5  rs = 0, 3
-        "001"       //  1  rs = 0, 1
-        "0110"      //  2  rs = 0, 2
-        "000"       // -1  rs = 0, 1
-        "001"       //  1  rs = 0, 1
-        "000"       // -1  rs = 0, 1
-        "0110"      //  2  rs = 0, 2
-        "11110100"  // -1  rs = 5, 1
-        "000"       // -1  rs = 0, 1
-        "1010"      // EOB
+        Coefficient(-26, 5, Coefficient::Coefficient_Type::DC, 0),    // -26, ssss=5
+        Coefficient(-3, 0x02, Coefficient::Coefficient_Type::AC, 0),  // -3, rs = 0, 2
+        Coefficient(-3, 0x12, Coefficient::Coefficient_Type::AC, 0),  // -3, rs = 1, 2
+        Coefficient(-2, 0x02, Coefficient::Coefficient_Type::AC, 0),  // -2  rs = 0, 2
+        Coefficient(-6, 0x03, Coefficient::Coefficient_Type::AC, 0),  // -6  rs = 0, 3
+        Coefficient( 2, 0x02, Coefficient::Coefficient_Type::AC, 0),  //  2  rs = 0, 2
+        Coefficient(-4, 0x03, Coefficient::Coefficient_Type::AC, 0),  // -4  rs = 0, 3
+        Coefficient( 1, 0x01, Coefficient::Coefficient_Type::AC, 0),  //  1  rs = 0, 1
+        Coefficient(-3, 0x02, Coefficient::Coefficient_Type::AC, 0),  // -3  rs = 0, 2
+        Coefficient( 1, 0x01, Coefficient::Coefficient_Type::AC, 0),  //  1  rs = 0, 1
+        Coefficient( 1, 0x01, Coefficient::Coefficient_Type::AC, 0),  //  1  rs = 0, 1
+        Coefficient( 5, 0x03, Coefficient::Coefficient_Type::AC, 0),  //  5  rs = 0, 3
+        Coefficient( 1, 0x01, Coefficient::Coefficient_Type::AC, 0),  //  1  rs = 0, 1
+        Coefficient( 2, 0x02, Coefficient::Coefficient_Type::AC, 0),  //  2  rs = 0, 2
+        Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),  // -1  rs = 0, 1
+        Coefficient( 1, 0x01, Coefficient::Coefficient_Type::AC, 0),  //  1  rs = 0, 1
+        Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),  // -1  rs = 0, 1
+        Coefficient( 2, 0x02, Coefficient::Coefficient_Type::AC, 0),  //  2  rs = 0, 2
+        Coefficient(-1, 0x51, Coefficient::Coefficient_Type::AC, 0),  // -1  rs = 5, 1
+        Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),  // -1  rs = 0, 1
+        // End of block marker corresponds to 0x00
+        Coefficient(0, 0x00, Coefficient::Coefficient_Type::AC, 0),
         // Second data unit
         // Remember the DC elements of both data units are the same and its
         // the difference that is encoded. I.e. 0
-        "00"        // 0, ssss=5
-        "0100"      // -3, rs = 0, 2
-        "1101100"   // -3, rs = 1, 2
-        "0101"      // -2  rs = 0, 2
-        "100001"    // -6  rs = 0, 3
-        "0110"      //  2  rs = 0, 2
-        "100011"    // -4  rs = 0, 3
-        "001"       //  1  rs = 0, 1
-        "0100"      // -3  rs = 0, 2
-        "001"       //  1  rs = 0, 1
-        "001"       //  1  rs = 0, 1
-        "100101"    //  5  rs = 0, 3
-        "001"       //  1  rs = 0, 1
-        "0110"      //  2  rs = 0, 2
-        "000"       // -1  rs = 0, 1
-        "001"       //  1  rs = 0, 1
-        "000"       // -1  rs = 0, 1
-        "0110"      //  2  rs = 0, 2
-        "11110100"  // -1  rs = 5, 1
-        "000"       // -1  rs = 0, 1
-        "1010"      // EOB
+        Coefficient(0,  0, Coefficient::Coefficient_Type::DC, 0),    // -26, ssss=5
+        Coefficient(-3, 0x02, Coefficient::Coefficient_Type::AC, 0),  // -3, rs = 0, 2
+        Coefficient(-3, 0x12, Coefficient::Coefficient_Type::AC, 0),  // -3, rs = 1, 2
+        Coefficient(-2, 0x02, Coefficient::Coefficient_Type::AC, 0),  // -2  rs = 0, 2
+        Coefficient(-6, 0x03, Coefficient::Coefficient_Type::AC, 0),  // -6  rs = 0, 3
+        Coefficient( 2, 0x02, Coefficient::Coefficient_Type::AC, 0),  //  2  rs = 0, 2
+        Coefficient(-4, 0x03, Coefficient::Coefficient_Type::AC, 0),  // -4  rs = 0, 3
+        Coefficient( 1, 0x01, Coefficient::Coefficient_Type::AC, 0),  //  1  rs = 0, 1
+        Coefficient(-3, 0x02, Coefficient::Coefficient_Type::AC, 0),  // -3  rs = 0, 2
+        Coefficient( 1, 0x01, Coefficient::Coefficient_Type::AC, 0),  //  1  rs = 0, 1
+        Coefficient( 1, 0x01, Coefficient::Coefficient_Type::AC, 0),  //  1  rs = 0, 1
+        Coefficient( 5, 0x03, Coefficient::Coefficient_Type::AC, 0),  //  5  rs = 0, 3
+        Coefficient( 1, 0x01, Coefficient::Coefficient_Type::AC, 0),  //  1  rs = 0, 1
+        Coefficient( 2, 0x02, Coefficient::Coefficient_Type::AC, 0),  //  2  rs = 0, 2
+        Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),  // -1  rs = 0, 1
+        Coefficient( 1, 0x01, Coefficient::Coefficient_Type::AC, 0),  //  1  rs = 0, 1
+        Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),  // -1  rs = 0, 1
+        Coefficient( 2, 0x02, Coefficient::Coefficient_Type::AC, 0),  //  2  rs = 0, 2
+        Coefficient(-1, 0x51, Coefficient::Coefficient_Type::AC, 0),  // -1  rs = 5, 1
+        Coefficient(-1, 0x01, Coefficient::Coefficient_Type::AC, 0),  // -1  rs = 0, 1
+        // End of block marker corresponds to 0x00
+        Coefficient(0, 0x00, Coefficient::Coefficient_Type::AC, 0)
     };
 
-    Bit_String actual_result{};
+    std::vector<Coefficient> actual_result;
     size_t mcu_count{ 2 };
 
     for (size_t mcu_ind = 0; mcu_ind < mcu_count; mcu_ind++)
     {
-        append_mcu(actual_result, prev_dc, du_ind, input_array, comp_info, huff_dc, huff_ac);
+        append_mcu(actual_result, prev_dc, du_ind, input_array, comp_info);
     }
 
-    CHECK( actual_result == expected_result );
+    CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
 
 TEST_CASE( "append_mcu()::multiple components", "[append_mcu()]" ) {
@@ -1685,14 +1780,6 @@ TEST_CASE( "append_mcu()::multiple components", "[append_mcu()]" ) {
             1,  // H sampling factor
             1   // V sampling factor
         )
-    };
-    std::vector<Huff_Table> huff_dc{ 
-        Huff_Table::load_DC_table(Image_Component::Luminance),
-        Huff_Table::load_DC_table(Image_Component::Chrominance)
-    };
-    std::vector<Huff_Table> huff_ac{ 
-        Huff_Table::load_AC_table(Image_Component::Luminance),
-        Huff_Table::load_AC_table(Image_Component::Chrominance)
     };
 
     // Corresponds to the Wikipedia example using the Wikipedia quantization table
@@ -1767,42 +1854,40 @@ TEST_CASE( "append_mcu()::multiple components", "[append_mcu()]" ) {
         }
     };
 
-    Bit_String expected_result{
+    std::vector<Coefficient> expected_result{
         // First component
         // First data unit
-        "0101"      // 1, ssss=1
-        "0110"      // 2, rs = 0, 2
-        "1010"      // EOB
+        Coefficient(1, 1, Coefficient::Coefficient_Type::DC, 0),        // 1, ssss=1
+        Coefficient(2, 0x02, Coefficient::Coefficient_Type::AC, 0),     // 2, rs = 0, 2
+        Coefficient(0, 0x00, Coefficient::Coefficient_Type::AC, 0),     // EOB
         // Second data unit
-        "01110"     // 2, ssss=2  (note diff=2)
-        "100100"    // 4, rs = 0, 3
-        "1010"      // EOB
+        Coefficient(2, 2, Coefficient::Coefficient_Type::DC, 0),        // 2, ssss=2  (note diff=2)
+        Coefficient(4, 0x03, Coefficient::Coefficient_Type::AC, 0),     // 4, rs = 0, 3
+        Coefficient(0, 0x00, Coefficient::Coefficient_Type::AC, 0),     // EOB
         // Third data unit
-        "01110"     // 2, ssss=3
-        "100110"    // 6, rs = 0, 3
-        "1010"      // EOB
+        Coefficient(2, 2, Coefficient::Coefficient_Type::DC, 0),        // 2, ssss=3  (note diff=2)
+        Coefficient(6, 0x03, Coefficient::Coefficient_Type::AC, 0),     // 6, rs = 0, 3
+        Coefficient(0, 0x00, Coefficient::Coefficient_Type::AC, 0),     // EOB
         // Fourth data unit
-        "01110"     // 2, ssss=3
-        "10111000"  // 8, rs = 0, 4
-        "1010"      // EOB
-
+        Coefficient(2, 2, Coefficient::Coefficient_Type::DC, 0),        // 2, ssss=3  (note diff=2)
+        Coefficient(8, 0x04, Coefficient::Coefficient_Type::AC, 0),     // 8, rs = 0, 4
+        Coefficient(0, 0x00, Coefficient::Coefficient_Type::AC, 0),     // EOB
         // Second component
-        "11101001"  // 9, ssss=4
-        "110001010" // 10, rs = 0, 4
-        "00"      // EOB
-
+        Coefficient(9, 4, Coefficient::Coefficient_Type::DC, 1),        // 9, ssss=4
+        Coefficient(10, 0x04, Coefficient::Coefficient_Type::AC, 1),    // 10, rs = 0, 4
+        Coefficient(0, 0x00, Coefficient::Coefficient_Type::AC, 1),     // EOB
         // Third component
-        "11101011"  // 11, ssss=4
-        "110001100" // 12, rs = 0, 4
-        "00"      // EOB
+        Coefficient(11, 4, Coefficient::Coefficient_Type::DC, 2),       // 11, ssss=4
+        Coefficient(12, 0x04, Coefficient::Coefficient_Type::AC, 2),    // 12, rs = 0, 4
+        Coefficient(0, 0x00, Coefficient::Coefficient_Type::AC, 2),     // EOB
     };
 
-    Bit_String actual_result{};
+    std::vector<Coefficient> actual_result;
 
     // Append the MCU
-    append_mcu(actual_result, prev_dc, du_ind, input_array, comp_info, huff_dc, huff_ac);
+    append_mcu(actual_result, prev_dc, du_ind, input_array, comp_info);
 
-    CHECK( actual_result == expected_result );
+    CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
 
 TEST_CASE( "append_scan_header()::single component", "[append_scan_header()]" ) {
