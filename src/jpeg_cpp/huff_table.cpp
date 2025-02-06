@@ -2,6 +2,178 @@
 
 namespace JPEG
 {
+    void Huff_Table::compute_code_size(std::array<unsigned int, 257>& freq, std::array<unsigned int, 257>& code_size, std::array<int, 257>& others)
+    {
+        size_t v1, v2;
+        unsigned int cur_min;
+
+        while (true)
+        {
+            // Find smallest non-zero freq[v1]
+            v1 = 0;
+            cur_min = 0;
+
+            for (size_t ind = 0; ind < freq.size(); ind++)
+            {
+                if (freq[ind]!=0)
+                {
+                    // If this is the first non-zero frequency we've encountered (cur_min==0)
+                    // Then set it as the minimum
+                    // Alternatively, if we have found a minimum and the current freq is lower
+                    // or the same, then use that instead. Note the <= instead of < as if 
+                    // there are more than one element with the minimum frequency we want the
+                    // one with the largest v1
+                    if (cur_min==0 || freq[ind]<=cur_min)
+                    {
+                        cur_min = freq[ind];
+                        v1 = ind;
+                    }
+                }
+            }
+
+            // Now find the next least freq[v2]
+            // Note that this does not in general exist so set it to 257 to indicate it does note
+            v2 = 257;
+            cur_min = 0;
+
+            for (size_t ind = 0; ind < freq.size(); ind++)
+            {
+                if (freq[ind]!=0)
+                {
+                    // If this is the first non-zero frequency we've encountered (cur_min==0)
+                    // Then set it as the minimum
+                    // Alternatively, if we have found a minimum and the current freq is lower
+                    // or the same, then use that instead. Note the <= instead of < as if 
+                    // there are more than one element with the minimum frequency we want the
+                    // one with the largest v2
+                    // Note we exclude the case of v2==v1
+                    if (ind!=v1 && (cur_min==0 || freq[ind]<=cur_min))
+                    {
+                        cur_min = freq[ind];
+                        v2 = ind;
+                    }
+                }
+            }
+
+            // Check to see if v2 exists, if not, we're done
+            if (v2==257)
+            {
+                break;
+            }
+            
+            freq[v1] += freq[v2];
+            freq[v2] = 0;
+
+            code_size[v1]++;
+
+            while (others[v1]!=-1)
+            {
+                v1 = others[v1];
+                code_size[v1]++;
+            }
+
+            others[v1] = v2;
+
+            code_size[v2]++;
+
+            while (others[v2]!=-1)
+            {
+                v2 = others[v2];
+                code_size[v2]++;
+            }            
+        }
+    }
+
+    std::array<unsigned int, 16> Huff_Table::count_BITS(const std::array<unsigned int, 257>& code_size)
+    {
+        std::array<unsigned int, 32> bits_32{};
+
+        for (auto size : code_size)
+        {
+            if (size>32)
+            {
+                throw std::invalid_argument("Huffman table required code with size greater than 32 bits");
+            }
+            else if (size!=0)
+            {
+                bits_32[size-1]++;
+            }
+        }
+
+        // adjust_bits() ensures no codes are more than 16 bits in length
+        adjust_BITS(bits_32);
+
+        // Now we only need the first 16 entries
+        std::array<unsigned int, 16> bits_16;
+        std::copy(&bits_32[0], &bits_32[16], bits_16.begin());
+
+        return bits_16;
+    }
+
+    void Huff_Table::adjust_BITS(std::array<unsigned int, 32>& bits)
+    {
+        size_t i{ bits.size()-1 };
+
+        while (true)
+        {
+            if (bits[i]>0)
+            {
+                size_t j{ i-1 };
+
+                while (bits[j]==0)
+                {
+                    j--;
+                }
+
+                bits[i]   -= 2;
+                bits[i-1] += 1;
+                bits[j+1] += 2;
+                bits[j]   -= 1;
+            }
+            else
+            {
+                i--;
+
+                if (i==15)
+                {
+                    break;
+                }
+            }
+        }
+
+        // Think thes section is removing the one we reserved so no all-1s Huffman codes are used
+        while (bits[i]==0)
+        {
+            i--;
+        }
+
+        bits[i]--;
+    }
+
+    std::vector<unsigned int> Huff_Table::sort_input(const std::array<unsigned int, 257>& code_size_array)
+    {
+        // Only the BITS array has been adjusted so no code has more than 16 bits
+        // The code size array may have entries with more than 16 bits, a maximum
+        // of 32
+        unsigned int max_code_size{ 32 };
+        std::vector<unsigned int> huffval;
+
+        for (size_t code_size = 1; code_size <= max_code_size; code_size++)
+        {
+            // Note we want to skip the last element of the code size array as it's used to
+            // reserve the all-1s codes
+            for (size_t ind = 0; ind < code_size_array.size()-1; ind++)
+            {
+                if (code_size_array[ind]==code_size)
+                {
+                    huffval.push_back(ind);
+                }
+            }
+        }
+
+        return huffval;        
+    }
+
     Huff_Table::Huff_Table(const std::initializer_list<Bit_String> &ls)
     {
         for (auto& bs : ls)
@@ -383,5 +555,71 @@ namespace JPEG
         table[0xFA] = Bit_String{"1111111111111110"};
 
         return table;
+    }
+
+    Huff_Table Huff_Table::load_table_from_BITS_and_HUFFVAL(
+        const std::array<unsigned int, 16>& bits, const std::vector<unsigned int>& huffval
+    )
+    {
+        // Roughly follows the algorithm in Figure C.2 of the JPEG spec 
+        Huff_Table table(256);
+
+        unsigned int code{ 0 };
+        size_t symbol_ind{ 0 };
+        unsigned int code_size{ 1 };
+
+        for (auto N_codes : bits)
+        {
+            for (size_t i = 0; i < N_codes; i++)
+            {
+                table[huffval[symbol_ind]].append_last_ssss_bits(code, code_size);
+                code++;
+                symbol_ind++;
+            }
+            
+            code = code << 1;
+            code_size++;
+        }
+
+        return table;
+    }
+
+    Huff_Table Huff_Table::gen_table_from_stats(const std::vector<unsigned int>& stats)
+    {
+        if (stats.size()>256)
+        {
+            throw std::invalid_argument("Recived more than 256 symbols");
+        }
+
+        // First compute the frequency array. Note there is an extra
+        // value that is set to 1
+        std::array<unsigned int, 257> freq{};
+
+        std::copy(stats.begin(), stats.end(), freq.begin());
+        freq.back() = 1;
+
+        // Code size array given the number of bits used for each symbol
+        // Entries should be initialized to zero
+        std::array<unsigned int, 257> code_size{};
+
+        // Not quite sure what this is, should be initialized to -1
+        std::array<int, 257> others;
+
+        for (auto &elem : others)
+        {
+            elem = -1;
+        }
+        
+        // Now can begin generating the table, first compute code sizes
+        Huff_Table::compute_code_size(freq, code_size, others);
+
+        // Compute the BITS array
+        std::array<unsigned int, 16> bits{ Huff_Table::count_BITS(code_size) };
+
+        // Compute the HUFFVAL array
+        auto huffval{ Huff_Table::sort_input(code_size) };
+
+        // Now used the BITS and HUFFVAL arrays to generate the Huffman table
+        return Huff_Table::load_table_from_BITS_and_HUFFVAL(bits, huffval);
     }
 }
