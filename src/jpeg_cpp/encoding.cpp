@@ -315,6 +315,23 @@ namespace JPEG
         }
     }
 
+    std::vector<Coefficient> encode_coeff_rep_sequential(const std::vector<DU_Array<double>>& arrays, const std::vector<Comp_Info>& comp_infos)
+    {
+        // Entropy encode each MCU in turn
+        // Note previous DC should be initialized to 0
+        std::vector<int> prev_dc(arrays.size());
+        std::vector<size_t> du_ind(arrays.size());
+
+        std::vector<Coefficient> encoded_coeffs;
+
+        while (du_ind[0]<arrays[0].shape()[0])
+        {
+            append_mcu(encoded_coeffs, prev_dc, du_ind, arrays, comp_infos);
+        }
+
+        return encoded_coeffs;
+    }
+
     void append_BITS_array(std::vector<unsigned char>& out, const Huff_Table& huff_table)
     {
         std::array<unsigned char, 16> BITS{};
@@ -479,23 +496,11 @@ namespace JPEG
         }
     }
 
-    void encode_scan(std::vector<unsigned char>& out, std::vector<DU_Array<double>>& arrays, 
+    void encode_scan(std::vector<unsigned char>& out, const std::vector<Coefficient>& encoded_coeffs, 
         const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables)
     {
         // Append scan header
         append_scan_header(out, comp_infos);
-        
-        // Entropy encode each MCU in turn
-        // Note previous DC should be initialized to 0
-        std::vector<int> prev_dc(arrays.size());
-        std::vector<size_t> du_ind(arrays.size());
-
-        std::vector<Coefficient> encoded_coeffs;
-
-        while (du_ind[0]<arrays[0].shape()[0])
-        {
-            append_mcu(encoded_coeffs, prev_dc, du_ind, arrays, comp_infos);
-        }
 
         // Now need encode the bit string
         Bit_String bs;
@@ -554,6 +559,10 @@ namespace JPEG
         const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
         const std::vector<Q_Table>& q_tables)
     {
+        // Encode the image data into the Coefficient representation
+        // This is so we can optionally produce optimized Huffman tables for this particular image
+        std::vector<Coefficient> encoded_coeffs{ encode_coeff_rep_sequential(arrays, comp_infos) };
+
         // Append various tables starting with quantization tables
         std::vector<unsigned int> q_table_inds;
 
@@ -587,7 +596,7 @@ namespace JPEG
         append_frame_header(out, Y, X, comp_infos);
 
         // Finally encode the scan
-        encode_scan(out, arrays, comp_infos, dc_tables, ac_tables);
+        encode_scan(out, encoded_coeffs, comp_infos, dc_tables, ac_tables);
     }
 
     DU_Array<double> convert_to_DU_Array(const Array_2d<double>& array_2d, const Comp_Info& comp_info)

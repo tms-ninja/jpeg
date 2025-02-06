@@ -136,9 +136,16 @@ namespace JPEG
     /// @param prev_dc Previous DC coefficients of each component
     /// @param du_ind Index of the next data unit to encode for each component
     /// @param arrays Arrays comtaining the data units for each component
-    /// @param comps Component descriptors for each component
+    /// @param comp_infos Component descriptors for each component
     void append_mcu(std::vector<Coefficient>& coeffs, std::vector<int>& prev_dc, std::vector<size_t>& du_ind, const std::vector<DU_Array<double>>& arrays, 
         const std::vector<Comp_Info>& comp_infos);
+
+    /// @brief Encodes image data into the Coefficient representation for a sequential image. This is to allow the 
+    /// possibility of producing optimized Huffman tables for the image before encoding into a Bit_String
+    /// @param arrays Arrays comtaining the data units for each component
+    /// @param comp_infos Component descriptors for each component
+    /// @return A vector of Coefficients representing the encoded component data
+    std::vector<Coefficient> encode_coeff_rep_sequential(const std::vector<DU_Array<double>>& arrays, const std::vector<Comp_Info>& comp_infos);
 
     /// @brief Appends a marker segment describing the given quantization tables
     /// @param out Output to append encoded marker segment to
@@ -212,13 +219,12 @@ namespace JPEG
 
     /// @brief Encodes a scan. Note does not perform level shift/DCT/quantization
     /// @param out Output to append scan to
-    /// @param arrays Arrays comtaining the data units for each component. Level shift/DCT/quantization should have already
-    /// been performed
+    /// @param encoded_coeffs Image data encoded in the Coefficient representation
     /// @param comp_infos List of components in the scan
     /// @param dc_tables List of DC tables. Note which table is used for each component is taken from comp_infos
     /// @param ac_tables List of AC tables. Note which table is used for each component is taken from comp_infos
     /// @param q_tables List of quantization tables. Note which table is used for each component is taken from comp_infos
-    void encode_scan(std::vector<unsigned char>& out, std::vector<DU_Array<double>>& arrays, 
+    void encode_scan(std::vector<unsigned char>& out, const std::vector<Coefficient>& encoded_coeffs, 
         const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables);
 
     /// @brief Encodes a frame. Note does not perform level shift/DCT/quantization
