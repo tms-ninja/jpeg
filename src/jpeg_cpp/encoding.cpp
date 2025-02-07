@@ -249,10 +249,8 @@ namespace JPEG
         return dc_coeff;
     }
 
-    void append_q_table_marker_segment(std::vector<unsigned char>& out, const std::vector<Q_Table>& q_tables, std::vector<unsigned int>& destination_indices)
+    void append_q_table_marker_segment(std::vector<unsigned char>& out, const std::vector<Q_Table>& q_tables)
     {
-        assert("Number of quantization tables and destination indices must be the same" && q_tables.size()==destination_indices.size());
-
         // Append quantization table marker, 0xFFDB, most significant byte first
         append_marker(out, Marker::Define_Quantization_Table);
 
@@ -270,7 +268,7 @@ namespace JPEG
             unsigned int Pq{ 0 };
 
             // Table destination identifier
-            unsigned int Tq{ destination_indices[table_ind] };
+            unsigned int Tq{ static_cast<unsigned int>(table_ind) };
             assert("Tq cannot be greater than 3" && Tq<=3);
 
             // Pq & Tq form one byte, Pq most significant
@@ -630,15 +628,8 @@ namespace JPEG
         auto& dc_tables{ optimize_huff ? optimized_dc_tables : provided_dc_tables };
         auto& ac_tables{ optimize_huff ? optimized_ac_tables : provided_ac_tables };
 
-        // Append various tables starting with quantization tables
-        std::vector<unsigned int> q_table_inds;
-
-        for (size_t q_table_ind = 0; q_table_ind < q_tables.size(); q_table_ind++)
-        {
-            q_table_inds.push_back(static_cast<unsigned char>(q_table_ind));
-        }
-        
-        append_q_table_marker_segment(out, q_tables, q_table_inds);
+        // Append various tables starting with quantization tables       
+        append_q_table_marker_segment(out, q_tables);
 
         // Now add Huffman tables
         std::vector<Huff_Table_Ref> huff_refs;

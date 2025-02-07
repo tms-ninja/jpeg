@@ -1281,7 +1281,6 @@ TEST_CASE( "encode_data_unit_sequential()::encode sample data unit", "[encode_da
 
 TEST_CASE( "append_q_table_marker_segment()::single quantization table", "[append_q_table_marker_segment()]" ) {
     std::vector<Q_Table> q_tables{ gen_wiki_q_table() };
-    std::vector<unsigned int> destination_indices{ 0 };
 
     std::vector<unsigned char> expected_result = {
         0xFF,   // DQT segment marker
@@ -1356,7 +1355,7 @@ TEST_CASE( "append_q_table_marker_segment()::single quantization table", "[appen
     };
 
     std::vector<unsigned char> actual_result{};
-    append_q_table_marker_segment(actual_result, q_tables, destination_indices);
+    append_q_table_marker_segment(actual_result, q_tables);
 
     CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }
@@ -1378,8 +1377,6 @@ TEST_CASE( "append_q_table_marker_segment()::two quantization table", "[append_q
         }
     }
     
-    std::vector<unsigned int> destination_indices{ 0, 1 };
-
     std::vector<unsigned char> expected_result = {
         0xFF,   // DQT segment marker
         0xDB,
@@ -1518,7 +1515,7 @@ TEST_CASE( "append_q_table_marker_segment()::two quantization table", "[append_q
     };
 
     std::vector<unsigned char> actual_result{};
-    append_q_table_marker_segment(actual_result, q_tables, destination_indices);
+    append_q_table_marker_segment(actual_result, q_tables);
 
     CHECK_THAT( actual_result, RangeEquals(expected_result) );
 }

@@ -147,12 +147,11 @@ namespace JPEG
     /// @return A vector of Coefficients representing the encoded component data
     std::vector<Coefficient> encode_coeff_rep_sequential(const std::vector<DU_Array<double>>& arrays, const std::vector<Comp_Info>& comp_infos);
 
-    /// @brief Appends a marker segment describing the given quantization tables
+    /// @brief Appends a marker segment describing the given quantization tables. Destination indices are assigned
+    /// in the order quantization tables are supplied
     /// @param out Output to append encoded marker segment to
     /// @param q_tables Quantization tables to encode
-    /// @param destination_indices Destination indices of the tables in q_tables
-    void append_q_table_marker_segment(std::vector<unsigned char>& out, const std::vector<Q_Table>& q_tables, 
-                        std::vector<unsigned int>& destination_indices);
+    void append_q_table_marker_segment(std::vector<unsigned char>& out, const std::vector<Q_Table>& q_tables);
     
     /// @brief Represents a reference to a Huffman table along with information like its DC/AC type
     struct Huff_Table_Ref
