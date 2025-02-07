@@ -227,7 +227,16 @@ namespace JPEG
     void encode_scan(std::vector<unsigned char>& out, const std::vector<Coefficient>& encoded_coeffs, 
         const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables);
 
-    // std::vector<unsigned int> gen_stats(const std::vector<Coefficient>& coeffs, unsigned int comp_ind, Coefficient_Type type);
+    /// @brief Updates the passed stats with the RS statistics of the passed coeffs. Which stat is updated for a given
+    /// coefficient is determined by the component's Comp_Info::DC_Huff_table_ind and Comp_Info::AC_Huff_table_ind
+    /// @param stats The statistics to update. It's size should be equal to the number of DC/AC Huffman tables to update.
+    /// E.g. for a greyscale image it should be size 1. For a colour image where the the luminance component has its own
+    /// Huffman table and the two chromiance channels share a separate table, it should be size 2.
+    /// @param coeffs Vector of Coefficients to draw RS values from
+    /// @param comp_infos Component descriptors
+    void add_coeffs_stats(
+        std::vector<Coefficient_Stats>& stats, const std::vector<Coefficient>& coeffs, const std::vector<Comp_Info>& comp_infos
+    );
 
     /// @brief Encodes a frame. Note does not perform level shift/DCT/quantization
     /// @param out Output to append frame to

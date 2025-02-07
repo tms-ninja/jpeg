@@ -356,7 +356,7 @@ namespace JPEG
 
     void append_HUFFVAL_array(std::vector<unsigned char>& out, const Huff_Table& huff_table)
     {
-        assert("huffman table should not have symbols above 255" && huff_table.size()<255);
+        assert("huffman table should not have symbols above 255" && huff_table.size()<=256);
 
         // Can assume Huffman table is cannonical
         // Means for a given code size symbols appear with increasing codes,
@@ -555,13 +555,80 @@ namespace JPEG
         }
     }
 
+    void add_coeffs_stats(
+        std::vector<Coefficient_Stats>& stats, const std::vector<Coefficient>& coeffs, const std::vector<Comp_Info>& comp_infos
+    )
+    {
+        for (auto &coeff : coeffs)
+        {
+            // 
+            size_t stat_ind;
+
+            if (coeff.type==Coefficient_Type::DC)
+            {
+                stat_ind = comp_infos[coeff.comp_ind].DC_Huff_table_ind;
+                stats[stat_ind].dc_stats[coeff.RS]++;
+            }
+            else
+            {
+                stat_ind = comp_infos[coeff.comp_ind].AC_Huff_table_ind;
+                stats[stat_ind].ac_stats[coeff.RS]++;
+            }
+        }
+    }
+
     void encode_frame(std::vector<unsigned char>& out, unsigned int Y, unsigned int X, std::vector<DU_Array<double>>& arrays, 
-        const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
+        const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& provided_dc_tables, const std::vector<Huff_Table>& provided_ac_tables,
         const std::vector<Q_Table>& q_tables, bool optimize_huff)
     {
         // Encode the image data into the Coefficient representation
         // This is so we can optionally produce optimized Huffman tables for this particular image
         std::vector<Coefficient> encoded_coeffs{ encode_coeff_rep_sequential(arrays, comp_infos) };
+
+        std::vector<Huff_Table> optimized_ac_tables, optimized_dc_tables;
+
+        // Generate optimized Huffman tables if thet's what we want to do
+        if (optimize_huff)
+        {
+            // First determine How many DC and AC tables we need to compute
+            size_t max_dc_table_ind{ 
+                std::max_element(comp_infos.begin(), comp_infos.end(), 
+                    [](const Comp_Info& a, const Comp_Info& b)
+                    {
+                        return a.DC_Huff_table_ind<b.DC_Huff_table_ind;
+                    }
+                )->DC_Huff_table_ind
+            };
+            size_t max_ac_table_ind{ 
+                std::max_element(comp_infos.begin(), comp_infos.end(), 
+                    [](const Comp_Info& a, const Comp_Info& b)
+                    {
+                        return a.AC_Huff_table_ind<b.AC_Huff_table_ind;
+                    }
+                )->AC_Huff_table_ind
+            };
+
+            // Compute the RS statistics
+            std::vector<Coefficient_Stats> stats(1+std::max(max_dc_table_ind, max_ac_table_ind));
+
+            add_coeffs_stats(stats, encoded_coeffs, comp_infos);
+
+            // Finnaly add the tables
+            for (auto &coeff_stat : stats)
+            {
+                // generate DC table
+                Huff_Table&& dc_table{ Huff_Table::gen_table_from_stats(coeff_stat.dc_stats) };
+                optimized_dc_tables.push_back(std::move(dc_table));
+
+                // generate AC table
+                Huff_Table&& ac_table{ Huff_Table::gen_table_from_stats(coeff_stat.ac_stats) };
+                optimized_ac_tables.push_back(std::move(ac_table));
+            }
+        }
+
+        // Now set the table refs that point to which set of tables we should use
+        auto& dc_tables{ optimize_huff ? optimized_dc_tables : provided_dc_tables };
+        auto& ac_tables{ optimize_huff ? optimized_ac_tables : provided_ac_tables };
 
         // Append various tables starting with quantization tables
         std::vector<unsigned int> q_table_inds;
