@@ -172,6 +172,7 @@ namespace JPEG
         }
 
         // Correct for the fact code size can go up to 32 but the maximum allowed code length is 16
+        // Ensures symbols in HUFFVAL will be in cannoniical Huffman order
         size_t ind{};
 
         for (size_t bit_ind = 0; bit_ind < bits.size(); bit_ind++)
@@ -195,11 +196,6 @@ namespace JPEG
                 return p1.first<p2.first;
             }
         );
-
-        for (auto &p : huffval_pairs)
-        {
-            printf("code size = %d, symbol = %d\n", p.first, p.second);
-        }
         
         std::vector<unsigned int> huffval;
 
