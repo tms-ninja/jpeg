@@ -5,6 +5,7 @@
 #include <array>
 #include <cassert>
 #include <vector>
+#include <utility>
 
 #include "jpeg_cpp/general.h"
 #include "jpeg_cpp/bit_string.h"
@@ -38,7 +39,7 @@ namespace JPEG
         /// @brief Generates the HUFFVAL array, follows the algorithm in Figure K.4 of the JPEG spec
         /// @param code_size_array Vector of code sizes for each symbol
         /// @return HUFFVAL array
-        static std::vector<unsigned int> sort_input(const std::array<unsigned int, 257>& code_size_array);
+        static std::vector<unsigned int> sort_input(const std::array<unsigned int, 257>& code_size_array, const std::array<unsigned int, 16>& bits);
     public:
         /// @brief Constructs a Huff_Table with the given number of elements. The Huffman
         /// codes of the newly constructed elements initially have size 0.

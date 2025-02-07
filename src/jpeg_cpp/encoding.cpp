@@ -326,7 +326,7 @@ namespace JPEG
 
         while (du_ind[0]<arrays[0].shape()[0])
         {
-            append_mcu(encoded_coeffs, prev_dc, du_ind, arrays, comp_infos);
+            append_mcu(encoded_coeffs, prev_dc, du_ind, arrays, comp_infos);         
         }
 
         return encoded_coeffs;
@@ -619,7 +619,7 @@ namespace JPEG
                 // generate DC table
                 Huff_Table&& dc_table{ Huff_Table::gen_table_from_stats(coeff_stat.dc_stats) };
                 optimized_dc_tables.push_back(std::move(dc_table));
-
+                
                 // generate AC table
                 Huff_Table&& ac_table{ Huff_Table::gen_table_from_stats(coeff_stat.ac_stats) };
                 optimized_ac_tables.push_back(std::move(ac_table));
@@ -633,9 +633,9 @@ namespace JPEG
         // Append various tables starting with quantization tables
         std::vector<unsigned int> q_table_inds;
 
-        for (auto &comp_info : comp_infos)
+        for (size_t q_table_ind = 0; q_table_ind < q_tables.size(); q_table_ind++)
         {
-            q_table_inds.push_back(static_cast<unsigned char>(comp_info.q_table_ind));
+            q_table_inds.push_back(static_cast<unsigned char>(q_table_ind));
         }
         
         append_q_table_marker_segment(out, q_tables, q_table_inds);

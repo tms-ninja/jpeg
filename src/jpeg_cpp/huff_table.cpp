@@ -150,13 +150,13 @@ namespace JPEG
         bits[i]--;
     }
 
-    std::vector<unsigned int> Huff_Table::sort_input(const std::array<unsigned int, 257>& code_size_array)
+    std::vector<unsigned int> Huff_Table::sort_input(const std::array<unsigned int, 257>& code_size_array, const std::array<unsigned int, 16>& bits)
     {
         // Only the BITS array has been adjusted so no code has more than 16 bits
         // The code size array may have entries with more than 16 bits, a maximum
         // of 32
         unsigned int max_code_size{ 32 };
-        std::vector<unsigned int> huffval;
+        std::vector<std::pair<unsigned int, unsigned int>> huffval_pairs;  // Code size & symbol
 
         for (size_t code_size = 1; code_size <= max_code_size; code_size++)
         {
@@ -166,9 +166,46 @@ namespace JPEG
             {
                 if (code_size_array[ind]==code_size)
                 {
-                    huffval.push_back(ind);
+                    huffval_pairs.emplace_back(0, ind);
                 }
             }
+        }
+
+        // Correct for the fact code size can go up to 32 but the maximum allowed code length is 16
+        size_t ind{};
+
+        for (size_t bit_ind = 0; bit_ind < bits.size(); bit_ind++)
+        {
+            for (size_t i = 0; i < bits[bit_ind]; i++)
+            {
+                huffval_pairs[ind].first = bit_ind+1;
+                ind++;
+
+            }
+        }
+        
+        std::sort(huffval_pairs.begin(), huffval_pairs.end(), 
+            [](std::pair<unsigned int, unsigned int>& p1, std::pair<unsigned int, unsigned int>& p2)
+            {
+                if (p1.first==p2.first)
+                {
+                    return p1.second<p2.second;
+                }
+                
+                return p1.first<p2.first;
+            }
+        );
+
+        for (auto &p : huffval_pairs)
+        {
+            printf("code size = %d, symbol = %d\n", p.first, p.second);
+        }
+        
+        std::vector<unsigned int> huffval;
+
+        for (auto p : huffval_pairs)
+        {
+            huffval.push_back(p.second);
         }
 
         return huffval;        
@@ -588,7 +625,7 @@ namespace JPEG
     {
         if (stats.size()>256)
         {
-            throw std::invalid_argument("Recived more than 256 symbols");
+            throw std::invalid_argument("Received more than 256 symbols");
         }
 
         // First compute the frequency array. Note there is an extra
@@ -617,7 +654,7 @@ namespace JPEG
         std::array<unsigned int, 16> bits{ Huff_Table::count_BITS(code_size) };
 
         // Compute the HUFFVAL array
-        auto huffval{ Huff_Table::sort_input(code_size) };
+        auto huffval{ Huff_Table::sort_input(code_size, bits) };
 
         // Now used the BITS and HUFFVAL arrays to generate the Huffman table
         return Huff_Table::load_table_from_BITS_and_HUFFVAL(bits, huffval);

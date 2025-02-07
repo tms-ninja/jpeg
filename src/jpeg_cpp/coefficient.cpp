@@ -19,7 +19,7 @@ namespace JPEG
 
     std::ostream& operator<<(std::ostream& out, const Coefficient& coeff)
     {
-        out << "{value=" << coeff.value << ", RS=" << coeff.RS << ", type=";
+        out << "{value=" << coeff.value << ", RS=" << static_cast<unsigned int>(coeff.RS) << ", type=";
 
         if (coeff.type==Coefficient_Type::DC)
         {
@@ -30,7 +30,7 @@ namespace JPEG
             out << "AC";
         }
 
-        out << ", comp_ind=" << coeff.comp_ind << '}';
+        out << ", comp_ind=" << static_cast<unsigned int>(coeff.comp_ind) << '}';
 
         return out;
     }
