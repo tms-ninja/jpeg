@@ -50,6 +50,57 @@ class Test_encode_greyscale(unittest.TestCase):
 
         # Hard to say what a reasonable value for the expected mean difference is
         self.assertLess(mean_diff, 0.01)
+
+    def test_mean_diff_qf_90_opt_huff(self):
+        """Tests the mean difference between the original and encoded images using a quality factor of 90 and optimized Huffman tables"""
+
+        # Technically the test_mean_diff_qf_90() should do the same exact test
+        # However we include this one as it happened to reveal a bug when generating
+        # optimized Huffman tables
+
+        # Encode and then decode the pirate image
+        encoded_image = jpeg.encode_greyscale(self.pirate_img, qf=90, optimize_huff=True)
+
+        with PIL.Image.open(io.BytesIO(encoded_image)) as im:
+            decoded_image = np.array(im)
+
+        # Now check the decoded image is similar to the original
+        mean_diff = abs((decoded_image.astype(np.float64) - self.pirate_img.astype(np.float64)).mean())
+
+        # Hard to say what a reasonable value for the expected mean difference is
+        self.assertLess(mean_diff, 0.01)
+
+    def test_mean_diff_opt_huff(self):
+        """Tests the mean difference between the original and encoded images using optimized Huffman tables"""
+
+        # Encode and then decode the pirate image
+        encoded_image = jpeg.encode_greyscale(self.pirate_img, optimize_huff=True)
+
+        with PIL.Image.open(io.BytesIO(encoded_image)) as im:
+            decoded_image = np.array(im)
+
+        # Now check the decoded image is similar to the original
+        mean_diff = abs((decoded_image.astype(np.float64) - self.pirate_img.astype(np.float64)).mean())
+
+        # Hard to say what a reasonable value for the expected mean difference is
+        # Seems to be about 0.006 for the spec luminance table
+        self.assertLess(mean_diff, 0.01)
+
+    def test_mean_diff_spec_tables(self):
+        """Tests the mean difference between the original and encoded images using JPEG spec Huffman tables"""
+
+        # Encode and then decode the pirate image
+        encoded_image = jpeg.encode_greyscale(self.pirate_img, optimize_huff=False)
+
+        with PIL.Image.open(io.BytesIO(encoded_image)) as im:
+            decoded_image = np.array(im)
+
+        # Now check the decoded image is similar to the original
+        mean_diff = abs((decoded_image.astype(np.float64) - self.pirate_img.astype(np.float64)).mean())
+
+        # Hard to say what a reasonable value for the expected mean difference is
+        # Seems to be about 0.006 for the spec luminance table
+        self.assertLess(mean_diff, 0.01)
     
     def test_reject_non_numpy_array(self):
         """Tests objects other than numpy arrays are rejected"""
@@ -151,7 +202,29 @@ class Test_encode_colour(unittest.TestCase):
             mean_diff = abs((c_dec.astype(np.float64) - c_orig.astype(np.float64)).mean())
 
             # Hard to say what a reasonable value for the expected mean difference is
-            # Max seems to be about 0.13 for the blue component using spec quantization tables
+            self.assertLess(mean_diff, 1.0)
+
+    def test_mean_diff_qf_90_opt_huff(self):
+        """Tests the mean difference between the original and encoded images using a quality factor of 90 and optimized Huffman tables"""
+
+        # Technically the test_mean_diff_qf_90() should do the same exact test
+        # However we include this one as it happened to reveal a bug when generating
+        # optimized Huffman tables
+
+        # Encode and then decode the pirate image
+        encoded_image = jpeg.encode_colour(*self.mandrill_img, qf=90, optimize_huff=True)
+
+        with PIL.Image.open(io.BytesIO(encoded_image)) as im:
+            decoded_image = np.array(im)
+
+        decoded_image = tuple(decoded_image[:, :, i] for i in range(3))
+
+        # Now check the decoded image is similar to the original, component by component
+        for c_orig, c_dec in zip(self.mandrill_img, decoded_image):
+                
+            mean_diff = abs((c_dec.astype(np.float64) - c_orig.astype(np.float64)).mean())
+
+            # Hard to say what a reasonable value for the expected mean difference is
             self.assertLess(mean_diff, 1.0)
 
     def test_mean_diff_ss_4_2_0(self):
@@ -178,6 +251,44 @@ class Test_encode_colour(unittest.TestCase):
 
         # Encode and then decode the pirate image
         encoded_image = jpeg.encode_colour(*self.mandrill_img, ss="4:2:2")
+
+        with PIL.Image.open(io.BytesIO(encoded_image)) as im:
+            decoded_image = np.array(im)
+
+        decoded_image = tuple(decoded_image[:, :, i] for i in range(3))
+
+        # Now check the decoded image is similar to the original, component by component
+        for c_orig, c_dec in zip(self.mandrill_img, decoded_image):
+                
+            mean_diff = abs((c_dec.astype(np.float64) - c_orig.astype(np.float64)).mean())
+
+            # Hard to say what a reasonable value for the expected mean difference is
+            self.assertLess(mean_diff, 1.0)
+
+    def test_mean_diff_opt_huff(self):
+        """Tests the mean difference between the original and encoded images using optimized Huffman tables"""
+
+        # Encode and then decode the pirate image
+        encoded_image = jpeg.encode_colour(*self.mandrill_img, optimize_huff=True)
+
+        with PIL.Image.open(io.BytesIO(encoded_image)) as im:
+            decoded_image = np.array(im)
+
+        decoded_image = tuple(decoded_image[:, :, i] for i in range(3))
+
+        # Now check the decoded image is similar to the original, component by component
+        for c_orig, c_dec in zip(self.mandrill_img, decoded_image):
+                
+            mean_diff = abs((c_dec.astype(np.float64) - c_orig.astype(np.float64)).mean())
+
+            # Hard to say what a reasonable value for the expected mean difference is
+            self.assertLess(mean_diff, 1.0)
+
+    def test_mean_diff_spec_huff_tables(self):
+        """Tests the mean difference between the original and encoded images using JPEG spec Huffman tables"""
+
+        # Encode and then decode the pirate image
+        encoded_image = jpeg.encode_colour(*self.mandrill_img, optimize_huff=False)
 
         with PIL.Image.open(io.BytesIO(encoded_image)) as im:
             decoded_image = np.array(im)
