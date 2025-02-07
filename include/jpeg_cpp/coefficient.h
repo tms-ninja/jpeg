@@ -2,18 +2,19 @@
 #define COEFFICIENT_H
 
 #include <iostream>
+#include <vector>
 
 namespace JPEG
 {
+    enum class Coefficient_Type
+    {
+        DC,
+        AC
+    };
+    
     /// @brief Represents a quantized coefficient
     struct Coefficient
     {
-        enum class Coefficient_Type
-        {
-            DC,
-            AC
-        };
-
         // For 8 bit images the result of the quantization step is represented using a 
         // 12 bit integer, so short must be at least 2 bytes
         static_assert(sizeof(short)>=2, "Short must be at least 2 bytes");
@@ -38,6 +39,16 @@ namespace JPEG
         friend bool operator!=(const Coefficient& coeff1, const Coefficient& coeff2);
 
         friend std::ostream& operator<<(std::ostream& out, const Coefficient& coeff);
+    };
+
+    /// @brief Represents statistics about a component
+    struct Coefficient_Stats
+    {
+
+        std::vector<unsigned int> dc_stats;
+        std::vector<unsigned int> ac_stats;
+
+        Coefficient_Stats() : dc_stats(256), ac_stats(256) {}
     };
 }
 

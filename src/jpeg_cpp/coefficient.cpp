@@ -21,7 +21,7 @@ namespace JPEG
     {
         out << "{value=" << coeff.value << ", RS=" << coeff.RS << ", type=";
 
-        if (coeff.type==Coefficient::Coefficient_Type::DC)
+        if (coeff.type==Coefficient_Type::DC)
         {
             out << "DC";
         }

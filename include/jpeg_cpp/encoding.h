@@ -227,6 +227,8 @@ namespace JPEG
     void encode_scan(std::vector<unsigned char>& out, const std::vector<Coefficient>& encoded_coeffs, 
         const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables);
 
+    // std::vector<unsigned int> gen_stats(const std::vector<Coefficient>& coeffs, unsigned int comp_ind, Coefficient_Type type);
+
     /// @brief Encodes a frame. Note does not perform level shift/DCT/quantization
     /// @param out Output to append frame to
     /// @param Y Height of the image in pixels
@@ -237,9 +239,11 @@ namespace JPEG
     /// @param dc_tables List of DC tables. Note which table is used for each component is taken from comp_infos
     /// @param ac_tables List of AC tables. Note which table is used for each component is taken from comp_infos
     /// @param q_tables List of quantization tables. Note which table is used for each component is taken from comp_infos
+    /// @param optimize_huff Whether Optimized Huffman tables should be generated. If false, tables from the JPEG spec will
+    /// be used
     void encode_frame(std::vector<unsigned char>& out, unsigned int Y, unsigned int X, std::vector<DU_Array<double>>& arrays, 
         const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
-        const std::vector<Q_Table>& q_tables);
+        const std::vector<Q_Table>& q_tables, bool optimize_huff);
 
     /// @brief Converts from a 2d array representation to a data unit array representation. Note the array_2d should be 
     /// appropriately enlarged to ensure an integer number of MCUs
@@ -260,7 +264,7 @@ namespace JPEG
     /// @return The encoded image
     std::vector<unsigned char> encode_image(unsigned int Y, unsigned int X, const std::vector<Array_2d<double>>& arrays, 
         const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
-        const std::vector<Q_Table>& q_tables);
+        const std::vector<Q_Table>& q_tables, bool optimize_huff);
 
     /// @brief Enlarges the component as necessary to ensure the required integer number of data units vertically and horizontally.
     /// If the original component satisfies these requriements, a copy is returned

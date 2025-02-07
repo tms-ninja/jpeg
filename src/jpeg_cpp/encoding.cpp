@@ -163,7 +163,7 @@ namespace JPEG
     {
         unsigned int ssss{ compute_ssss(std::abs(diff)) };
 
-        coeffs.emplace_back(diff, ssss, Coefficient::Coefficient_Type::DC, comp_ind);
+        coeffs.emplace_back(diff, ssss, Coefficient_Type::DC, comp_ind);
     }
     
     void encode_AC_coeff(std::vector<Coefficient>& coeffs, int ac, unsigned int rrrr, size_t comp_ind)
@@ -174,7 +174,7 @@ namespace JPEG
         unsigned int ssss{ compute_ssss(std::abs(ac)) };
         unsigned int rrrrssss{ (rrrr << 4) + ssss };
 
-        coeffs.emplace_back(ac, rrrrssss, Coefficient::Coefficient_Type::AC, comp_ind);
+        coeffs.emplace_back(ac, rrrrssss, Coefficient_Type::AC, comp_ind);
     }
 
     void encode_AC_coeffs(std::vector<Coefficient>& coeffs, const DU_Array<double>& du_array, size_t du_ind, size_t comp_ind)
@@ -205,7 +205,7 @@ namespace JPEG
                 {
                     // No more values to encode, encode EOB
                     // Use dummy value of zero as note bits from it are encoded
-                    coeffs.emplace_back(0, end_of_block, Coefficient::Coefficient_Type::AC, comp_ind);
+                    coeffs.emplace_back(0, end_of_block, Coefficient_Type::AC, comp_ind);
                 }
 
                 r++;
@@ -218,7 +218,7 @@ namespace JPEG
             {
                 // Encode ZRL
                 // Use dummy value of zero as note bits from it are encoded
-                coeffs.emplace_back(0, zrl, Coefficient::Coefficient_Type::AC, comp_ind);
+                coeffs.emplace_back(0, zrl, Coefficient_Type::AC, comp_ind);
                 r -= 16;
             }
 
@@ -509,7 +509,7 @@ namespace JPEG
         {
             size_t comp_ind{ coeff.comp_ind };
 
-            if (coeff.type==Coefficient::Coefficient_Type::DC)
+            if (coeff.type==Coefficient_Type::DC)
             {
                 const Huff_Table& table{ dc_tables[comp_infos[comp_ind].DC_Huff_table_ind] };
                 bs.extend(table[coeff.RS]);
@@ -557,7 +557,7 @@ namespace JPEG
 
     void encode_frame(std::vector<unsigned char>& out, unsigned int Y, unsigned int X, std::vector<DU_Array<double>>& arrays, 
         const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
-        const std::vector<Q_Table>& q_tables)
+        const std::vector<Q_Table>& q_tables, bool optimize_huff)
     {
         // Encode the image data into the Coefficient representation
         // This is so we can optionally produce optimized Huffman tables for this particular image
@@ -643,7 +643,7 @@ namespace JPEG
 
     std::vector<unsigned char> encode_image(unsigned int Y, unsigned int X, const std::vector<Array_2d<double>>& arrays, 
         const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
-        const std::vector<Q_Table>& q_tables)
+        const std::vector<Q_Table>& q_tables, bool optimize_huff)
     {
         // Reshape the arrays into DU_Arrays
         std::vector<DU_Array<double>> du_arrays;
@@ -676,7 +676,7 @@ namespace JPEG
         append_marker(encoded_image, Marker::Start_Of_Image);
 
         // Append the encoded frame
-        encode_frame(encoded_image, Y, X, du_arrays, comp_infos, dc_tables, ac_tables, q_tables);
+        encode_frame(encoded_image, Y, X, du_arrays, comp_infos, dc_tables, ac_tables, q_tables, optimize_huff);
 
         // Lastly append the end of image marker, FFD9
         append_marker(encoded_image, Marker::End_Of_Image);

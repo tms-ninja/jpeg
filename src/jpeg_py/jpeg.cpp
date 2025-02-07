@@ -315,7 +315,7 @@ PyObject* encode_colour_wrapper(
     // Perform the encoding
     std::vector<unsigned char> encoded_image;
 
-    encoded_image = JPEG::encode_colour_image(red, green, blue, qf, ss);
+    encoded_image = JPEG::encode_colour_image(red, green, blue, qf, true, ss);
 
     // Now convert to a bytes object
     // note PyBytes_FromStringAndSize() returns null on failure and sets the Python error state
