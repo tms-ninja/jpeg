@@ -120,10 +120,10 @@ namespace JPEG
             {
                 size_t j{ i-1 };
 
-                while (bits[j]==0)
+                do
                 {
                     j--;
-                }
+                } while (bits[j]==0);
 
                 bits[i]   -= 2;
                 bits[i-1] += 1;
