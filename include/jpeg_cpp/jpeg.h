@@ -19,7 +19,7 @@ namespace JPEG
     /// @param array_2d Array containing the image data
     /// @param qf Quality factor used for the quantization tables. Defaults to 50, equivalent to spec tables
     /// @return Image data encoded as a JPEG
-    std::vector<unsigned char> encode_greyscale_image(const Array_2d<double>& array_2d, int qf=50);
+    std::vector<unsigned char> encode_greyscale_image(const Array_2d<double>& array_2d, int qf=50, bool optimize_huff=true);
 
     /// @brief Encodes a colour image
     /// @param red Red component of image
@@ -30,7 +30,7 @@ namespace JPEG
     /// @return Image data encoded as a JPEG
     std::vector<unsigned char> encode_colour_image(
         const Array_2d<double>& red, const Array_2d<double>& green, const Array_2d<double>& blue, int qf=50,
-        Subsampling ss=Subsampling::ss_4_4_4
+        bool optimize_huff=true, Subsampling ss=Subsampling::ss_4_4_4
     );
 }
 

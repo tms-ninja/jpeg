@@ -14,6 +14,7 @@
 
 #include "jpeg_cpp/array.h"
 #include "jpeg_cpp/bit_string.h"
+#include "jpeg_cpp/coefficient.h"
 #include "jpeg_cpp/component.h"
 #include "jpeg_cpp/huff_table.h"
 #include "jpeg_cpp/q_table.h"
@@ -98,55 +99,59 @@ namespace JPEG
     /// @return The ssss of n
     unsigned int compute_ssss(unsigned int n);
 
-    /// @brief Encodes a DC coefficient and appends the result to the Bit_String
-    /// @param bs Bit_String to append encoded DC coefficient to
+    /// @brief Encodes a DC coefficient and appends the result to the Vector of Coefficients
+    /// @param coeffs Vector of Coefficients to append encoded DC coefficient to
     /// @param diff Difference between the current DC coefficient and the previous DC coefficient
-    /// @param huff_table DC Huffman table
-    void encode_DC_coeff(Bit_String& bs, int diff, const Huff_Table& huff_table);
+    /// @param comp_ind Component index the DC coefficient is from
+    void encode_DC_coeff(std::vector<Coefficient>& coeffs, int diff, size_t comp_ind);
 
-    /// @brief Encodes a non-zero coefficient
-    /// @param bs Bit_String to append encoded AC coefficient to
-    /// @param coeff Current AC coefficient to encode
+    /// @brief Encodes a non-zero AC coefficient
+    /// @param coeffs Vector of Coefficients to append encoded AC coefficient to
+    /// @param ac Current AC coefficient to encode
     /// @param rrrr Current run length of zeros
-    /// @param huff_table AC Huffman table
-    void encode_AC_coeff(Bit_String& bs, int coeff, unsigned int rrrr, const Huff_Table& huff_table);
+    /// @param comp_ind Component index the DC coefficient is from
+    void encode_AC_coeff(std::vector<Coefficient>& coeffs, int ac, unsigned int rrrr, size_t comp_ind);
 
-    /// @brief Encodes the AC coefficients of a data unit and appends the result to the Bit_String
-    /// @param bs Bit_String to append encoded DC coefficient to
+    /// @brief Encodes the AC coefficients of a data unit and appends the result to the Vector of Coefficients
+    /// @param coeffs Vector of Coefficients to append the encoded AC coefficients to
     /// @param du_array DU_Array with the data unit to encode
     /// @param du_ind Index of the data unit within the DU_Array
-    /// @param huff_table AC Huffman table
-    void encode_AC_coeffs(Bit_String& bs, const DU_Array<double>& du_array, size_t du_ind,
-                            const Huff_Table& huff_table);
+    /// @param comp_ind Component index the DC coefficient is from
+    void encode_AC_coeffs(std::vector<Coefficient>& coeffs, const DU_Array<double>& du_array, size_t du_ind, size_t comp_ind);
 
-    /// @brief Encodes a data unit using the sequential mode. Note this only performs entropy encoding.
-    /// @param bs Bit_String to append encoded data unit to
+    /// @brief Encodes a data unit using the sequential mode. Note this takes a quantized data unit and outputs
+    /// the coefficients that need to be encoded. It does not encode it into a bit string.
+    /// @param coeffs Vector of Coefficients to append the encoded coefficients to
     /// @param du_array DU_Array with the data unit to encode
     /// @param du_ind Index of the data unit within the DU_Array
     /// @param prev_dc DC coefficient of the previously encoded data unit
-    /// @param huff_table_dc DC Huffman table
-    /// @param huff_table_ac AC Huffman table
+    /// @param comp_ind Component index the DC coefficient is from
     /// @return DC coefficient of the current data unit
-    int encode_data_unit_sequential(Bit_String& bs, const DU_Array<double>& du_array, size_t du_ind, int prev_dc,
-                        const Huff_Table& huff_table_dc, const Huff_Table& huff_table_ac);
+    int encode_data_unit_sequential(std::vector<Coefficient>& coeffs, const DU_Array<double>& du_array, size_t du_ind, int prev_dc,
+        size_t comp_ind);
 
-    /// @brief Appends the encoded MCU to the Bit_String. Note this only performs entropy encoding.
-    /// @param bs Bit_String to append encoded MCU to
+    /// @brief Appends the encoded MCU to the Vector of Coefficients. Note this takes a quantized data unit and outputs
+    /// the coefficients that need to be encoded. It does not encode it into a bit string.
+    /// @param coeffs Vector of Coefficients to append the encoded coefficients to
     /// @param prev_dc Previous DC coefficients of each component
     /// @param du_ind Index of the next data unit to encode for each component
     /// @param arrays Arrays comtaining the data units for each component
-    /// @param comps Component descriptors for each component
-    /// @param dc_tables List of DC tables. Note which table is used for each component is taken from comps
-    /// @param ac_tables List of AC tables. Note which table is used for each component is taken from comps
-    void append_mcu(Bit_String& bs, std::vector<int>& prev_dc, std::vector<size_t>& du_ind, const std::vector<DU_Array<double>>& arrays, 
-        const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables);
+    /// @param comp_infos Component descriptors for each component
+    void append_mcu(std::vector<Coefficient>& coeffs, std::vector<int>& prev_dc, std::vector<size_t>& du_ind, const std::vector<DU_Array<double>>& arrays, 
+        const std::vector<Comp_Info>& comp_infos);
 
-    /// @brief Appends a marker segment describing the given quantization tables
+    /// @brief Encodes image data into the Coefficient representation for a sequential image. This is to allow the 
+    /// possibility of producing optimized Huffman tables for the image before encoding into a Bit_String
+    /// @param arrays Arrays comtaining the data units for each component
+    /// @param comp_infos Component descriptors for each component
+    /// @return A vector of Coefficients representing the encoded component data
+    std::vector<Coefficient> encode_coeff_rep_sequential(const std::vector<DU_Array<double>>& arrays, const std::vector<Comp_Info>& comp_infos);
+
+    /// @brief Appends a marker segment describing the given quantization tables. Destination indices are assigned
+    /// in the order quantization tables are supplied
     /// @param out Output to append encoded marker segment to
     /// @param q_tables Quantization tables to encode
-    /// @param destination_indices Destination indices of the tables in q_tables
-    void append_q_table_marker_segment(std::vector<unsigned char>& out, const std::vector<Q_Table>& q_tables, 
-                        std::vector<unsigned int>& destination_indices);
+    void append_q_table_marker_segment(std::vector<unsigned char>& out, const std::vector<Q_Table>& q_tables);
     
     /// @brief Represents a reference to a Huffman table along with information like its DC/AC type
     struct Huff_Table_Ref
@@ -213,14 +218,24 @@ namespace JPEG
 
     /// @brief Encodes a scan. Note does not perform level shift/DCT/quantization
     /// @param out Output to append scan to
-    /// @param arrays Arrays comtaining the data units for each component. Level shift/DCT/quantization should have already
-    /// been performed
+    /// @param encoded_coeffs Image data encoded in the Coefficient representation
     /// @param comp_infos List of components in the scan
     /// @param dc_tables List of DC tables. Note which table is used for each component is taken from comp_infos
     /// @param ac_tables List of AC tables. Note which table is used for each component is taken from comp_infos
     /// @param q_tables List of quantization tables. Note which table is used for each component is taken from comp_infos
-    void encode_scan(std::vector<unsigned char>& out, std::vector<DU_Array<double>>& arrays, 
+    void encode_scan(std::vector<unsigned char>& out, const std::vector<Coefficient>& encoded_coeffs, 
         const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables);
+
+    /// @brief Updates the passed stats with the RS statistics of the passed coeffs. Which stat is updated for a given
+    /// coefficient is determined by the component's Comp_Info::DC_Huff_table_ind and Comp_Info::AC_Huff_table_ind
+    /// @param stats The statistics to update. It's size should be equal to the number of DC/AC Huffman tables to update.
+    /// E.g. for a greyscale image it should be size 1. For a colour image where the the luminance component has its own
+    /// Huffman table and the two chromiance channels share a separate table, it should be size 2.
+    /// @param coeffs Vector of Coefficients to draw RS values from
+    /// @param comp_infos Component descriptors
+    void add_coeffs_stats(
+        std::vector<Coefficient_Stats>& stats, const std::vector<Coefficient>& coeffs, const std::vector<Comp_Info>& comp_infos
+    );
 
     /// @brief Encodes a frame. Note does not perform level shift/DCT/quantization
     /// @param out Output to append frame to
@@ -232,9 +247,11 @@ namespace JPEG
     /// @param dc_tables List of DC tables. Note which table is used for each component is taken from comp_infos
     /// @param ac_tables List of AC tables. Note which table is used for each component is taken from comp_infos
     /// @param q_tables List of quantization tables. Note which table is used for each component is taken from comp_infos
+    /// @param optimize_huff Whether Optimized Huffman tables should be generated. If false, tables from the JPEG spec will
+    /// be used
     void encode_frame(std::vector<unsigned char>& out, unsigned int Y, unsigned int X, std::vector<DU_Array<double>>& arrays, 
         const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
-        const std::vector<Q_Table>& q_tables);
+        const std::vector<Q_Table>& q_tables, bool optimize_huff);
 
     /// @brief Converts from a 2d array representation to a data unit array representation. Note the array_2d should be 
     /// appropriately enlarged to ensure an integer number of MCUs
@@ -255,7 +272,7 @@ namespace JPEG
     /// @return The encoded image
     std::vector<unsigned char> encode_image(unsigned int Y, unsigned int X, const std::vector<Array_2d<double>>& arrays, 
         const std::vector<Comp_Info>& comp_infos, const std::vector<Huff_Table>& dc_tables, const std::vector<Huff_Table>& ac_tables,
-        const std::vector<Q_Table>& q_tables);
+        const std::vector<Q_Table>& q_tables, bool optimize_huff);
 
     /// @brief Enlarges the component as necessary to ensure the required integer number of data units vertically and horizontally.
     /// If the original component satisfies these requriements, a copy is returned

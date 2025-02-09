@@ -107,3 +107,62 @@ TEST_CASE( "Huff_Table::Load AC tables", "[Huff_Table]" ) {
     }
 }
 
+TEST_CASE( "Huff_Table::load_table_from_BITS_and_HUFFVAL()", "[Huff_Table]" ) {
+    std::array<unsigned int, 16> bits{
+        0, 1, 3, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    };
+    std::vector<unsigned int> huffval{
+        3, 6, 1, 0, 9, 7
+    };
+    std::vector<Bit_String> expected_codes{
+        Bit_String("00"),
+        Bit_String("010"),
+        Bit_String("011"),
+        Bit_String("100"),
+        Bit_String("10100"),
+        Bit_String("10101")
+    };
+    
+    Huff_Table actual_result{ Huff_Table::load_table_from_BITS_and_HUFFVAL(bits, huffval) };
+
+    // Maximum symbol in HUFFVAL is 9, so there must be at least 10 entries in the 
+    // Huffman table. (Note that not all of these entries necessarily have a Huffman 
+    // code)
+    REQUIRE( actual_result.size()>= 10 );
+
+    // Check each symbol has the expected code
+    for (size_t symbol_ind = 0; symbol_ind < huffval.size(); symbol_ind++)
+    {
+        CAPTURE( symbol_ind );
+        CHECK( actual_result[huffval[symbol_ind]] == expected_codes[symbol_ind] );
+    }
+}
+
+TEST_CASE( "Huff_Table::gen_table_from_stats()", "[Huff_Table]" ) {
+    std::vector<unsigned int> stats{
+        4,
+        7,
+        4,
+        0,
+        3
+    };
+
+    Huff_Table expected_result(256);
+
+    expected_result[0] = Bit_String{"00"};
+    expected_result[1] = Bit_String{"01"};
+    expected_result[2] = Bit_String{"10"};
+    expected_result[3] = Bit_String{};
+    expected_result[4] = Bit_String{"110"};
+
+    Huff_Table actual_result{ Huff_Table::gen_table_from_stats(stats) };
+
+    REQUIRE( actual_result.size() == expected_result.size() );
+
+    // Check each code one by one
+    for (size_t code_ind = 0; code_ind < actual_result.size(); code_ind++)
+    {
+        CAPTURE( code_ind );
+        CHECK( actual_result[code_ind] == expected_result[code_ind] );
+    }
+}

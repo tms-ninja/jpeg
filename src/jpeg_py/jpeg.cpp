@@ -191,8 +191,9 @@ JPEG::Subsampling convert_subsampling_str(const std::string& ss_str)
 /// @brief Wraps the C++ JPEG:encode_greyscale
 /// @param np_array Image data as a numpy array
 /// @param qf Quality factor
+/// @param optimize_huff Whether to generate optimized Huffman tables or use spec tables
 /// @return Encoded image as a Python bytes object
-PyObject* encode_greyscale_wrapper(PyObject* np_array, int qf)
+PyObject* encode_greyscale_wrapper(PyObject* np_array, int qf, bool optimize_huff)
 {
     JPEG::Array_2d<double> array_2d;
     std::vector<unsigned char> encoded_image;
@@ -202,7 +203,7 @@ PyObject* encode_greyscale_wrapper(PyObject* np_array, int qf)
     validate_quality_factor(qf);
 
     // Perform the encoding
-    encoded_image = JPEG::encode_greyscale_image(array_2d, qf);
+    encoded_image = JPEG::encode_greyscale_image(array_2d, qf, optimize_huff);
 
     // Now convert to a bytes object
     // note PyBytes_FromStringAndSize() returns null on failure
@@ -219,7 +220,7 @@ PyObject* encode_greyscale_wrapper(PyObject* np_array, int qf)
 }
 
 PyDoc_STRVAR(encode_greyscale_docstring,
-    "encode_greyscale(data, qf=50)\n"   // Include function's signature first 
+    "encode_greyscale(data, qf=50, optimize_huff=True)\n"   // Include function's signature first 
     "--\n\n"                            // We need this "--\n\n" so Python knows the first line is the function signature
     "\n"
     "Encodes a greyscale image as a JPEG\n"
@@ -233,6 +234,10 @@ PyDoc_STRVAR(encode_greyscale_docstring,
     "    the Independent JPEG Group's algorithm. A value of 50 corresponds to\n"
     "    using the JPEG specification's suggested quantization tables. The\n"
     "    default is 50.\n"
+    "optimize_huff : bool, optional\n"
+    "    Whether to produce optimized Huffman tables for the image (True) or to\n"
+    "    use the tables provided in the JPEG specification. The default is\n"
+    "    True.\n"
     "\n"
     "Returns\n"
     "-------\n"
@@ -243,11 +248,14 @@ PyDoc_STRVAR(encode_greyscale_docstring,
 static PyObject *encode_greyscale(PyObject *self, PyObject *args, PyObject* kwargs) {
     PyObject* np_array;
     int qf{ 50 };  // default value correpsonds to JPEG spec suggested tables
+    int opt_huff_pred{ 1 };  // Whether to optimize Huffman tables
+
 
     // Names of all arguments, including positional and keyword
     const char* keywords[] = {
         "data",
         "qf",
+        "optimize_huff",
         nullptr
     };
 
@@ -255,7 +263,7 @@ static PyObject *encode_greyscale(PyObject *self, PyObject *args, PyObject* kwar
     // Python exception for up
     // Apparently using const_cast is appropriate here, PyArg_ParseTupleAndKeywords() shouldn't alter
     // keywords
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", const_cast<char**>(keywords), &np_array, &qf)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|ip", const_cast<char**>(keywords), &np_array, &qf, &opt_huff_pred)) {
         return nullptr;
     }
 
@@ -263,7 +271,7 @@ static PyObject *encode_greyscale(PyObject *self, PyObject *args, PyObject* kwar
 
     try
     {
-        encoded_image = encode_greyscale_wrapper(np_array, qf);
+        encoded_image = encode_greyscale_wrapper(np_array, qf, opt_huff_pred);
     }
     catch(const Python_Exception& e)
     {
@@ -287,10 +295,12 @@ static PyObject *encode_greyscale(PyObject *self, PyObject *args, PyObject* kwar
 /// @param green_np Green image component as a numpy array
 /// @param blue_np Blue image component as a numpy array
 /// @param qf Quality factor
+/// @param optimize_huff Whether to generate optimized Huffman tables or use spec tables
 /// @param ss_str Subsampling
 /// @return Encoded image as a Python bytes object
 PyObject* encode_colour_wrapper(
-    PyObject* red_np, PyObject* green_np, PyObject* blue_np, int qf, const std::string& ss_str
+    PyObject* red_np, PyObject* green_np, PyObject* blue_np, int qf, bool optimize_huff,
+    const std::string& ss_str
 )
 {
     JPEG::Array_2d<double> red, green, blue;
@@ -315,7 +325,7 @@ PyObject* encode_colour_wrapper(
     // Perform the encoding
     std::vector<unsigned char> encoded_image;
 
-    encoded_image = JPEG::encode_colour_image(red, green, blue, qf, ss);
+    encoded_image = JPEG::encode_colour_image(red, green, blue, qf, optimize_huff, ss);
 
     // Now convert to a bytes object
     // note PyBytes_FromStringAndSize() returns null on failure and sets the Python error state
@@ -333,7 +343,7 @@ PyObject* encode_colour_wrapper(
 
 PyDoc_STRVAR(encode_colour_docstring,
     // Include function's signature first 
-    "encode_colour(red, green, blue, qf=50, ss='4:4:4')\n"   
+    "encode_colour(red, green, blue, qf=50, optimize_huff=True, ss='4:4:4')\n"   
     "--\n\n"                                     // We need this "--\n\n" so Python knows the first line is the function signature
     "\n"
     "Encodes a colour image as a JPEG\n"
@@ -351,6 +361,10 @@ PyDoc_STRVAR(encode_colour_docstring,
     "    the Independent JPEG Group's algorithm. A value of 50 corresponds to\n"
     "    using the JPEG specification's suggested quantization tables. The\n"
     "    default is 50.\n"
+    "optimize_huff : bool, optional\n"
+    "    Whether to produce optimized Huffman tables for the image (True) or to\n"
+    "    use the tables provided in the JPEG specification. The default is\n"
+    "    True.\n"
     "ss : str, optional\n"
     "    Subsampling to perform, either '4:4:4' (no subsampling), '4:2:2' or \n"
     "    '4:2:0'. The default is '4:4:4'.\n"
@@ -366,6 +380,7 @@ static PyObject *encode_colour(PyObject *self, PyObject *args, PyObject* kwargs)
     PyObject* green;
     PyObject* blue;
     int qf{ 50 };   // default value correpsonds to JPEG spec suggested tables
+    int opt_huff_pred{ 1 };  // Whether to optimize Huffman tables
     const char* ss{ "4:4:4" };     // subsampling
 
     // Names of all arguments, including positional and keyword
@@ -374,6 +389,7 @@ static PyObject *encode_colour(PyObject *self, PyObject *args, PyObject* kwargs)
         "green",
         "blue",
         "qf",
+        "optimize_huff",
         "ss",
         nullptr
     };
@@ -382,7 +398,7 @@ static PyObject *encode_colour(PyObject *self, PyObject *args, PyObject* kwargs)
     // Python exception for up
     // Apparently using const_cast is appropriate here, PyArg_ParseTupleAndKeywords() shouldn't alter
     // keywords
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO|is", const_cast<char**>(keywords), &red, &green, &blue, &qf, &ss)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO|ips", const_cast<char**>(keywords), &red, &green, &blue, &qf, &opt_huff_pred, &ss)) {
         return nullptr;
     }
 
@@ -393,7 +409,7 @@ static PyObject *encode_colour(PyObject *self, PyObject *args, PyObject* kwargs)
 
     try
     {
-        encoded_image = encode_colour_wrapper(red, green, blue, qf, ss_str);
+        encoded_image = encode_colour_wrapper(red, green, blue, qf, opt_huff_pred, ss_str);
     }
     catch(const Python_Exception& e)
     {

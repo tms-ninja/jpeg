@@ -2,7 +2,7 @@
 
 namespace JPEG
 {
-    std::vector<unsigned char> encode_greyscale_image(const Array_2d<double>& array_2d, int qf)
+    std::vector<unsigned char> encode_greyscale_image(const Array_2d<double>& array_2d, int qf, bool optimize_huff)
     {
         // Load relevant quantization & Huffman tables
         std::vector<Q_Table> q_tables{
@@ -31,7 +31,7 @@ namespace JPEG
         const unsigned int Y{ static_cast<unsigned int>(array_2d.shape()[0]) };
         const unsigned int X{ static_cast<unsigned int>(array_2d.shape()[1]) };
         std::vector<unsigned char> encoded_image{ 
-            encode_image(Y, X, enlarged_comps, comp_infos, dc_huff_tables, ac_huff_tables, q_tables) 
+            encode_image(Y, X, enlarged_comps, comp_infos, dc_huff_tables, ac_huff_tables, q_tables, optimize_huff) 
         };
 
         return encoded_image;
@@ -39,7 +39,7 @@ namespace JPEG
 
     std::vector<unsigned char> encode_colour_image(
         const Array_2d<double>& red, const Array_2d<double>& green, const Array_2d<double>& blue, int qf,
-        Subsampling ss
+        bool optimize_huff, Subsampling ss
     )
     {
         // Load relevant quantization & Huffman tables
@@ -126,7 +126,7 @@ namespace JPEG
         const unsigned int Y{ static_cast<unsigned int>(red.shape()[0]) };
         const unsigned int X{ static_cast<unsigned int>(red.shape()[1]) };
         std::vector<unsigned char> encoded_image{ 
-            encode_image(Y, X, enlarged_comps, comp_infos, dc_huff_tables, ac_huff_tables, q_tables) 
+            encode_image(Y, X, enlarged_comps, comp_infos, dc_huff_tables, ac_huff_tables, q_tables, optimize_huff) 
         };
 
         return encoded_image;

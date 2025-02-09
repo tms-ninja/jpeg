@@ -5,6 +5,8 @@ add_library(jpeg_cpp SHARED
             array.cpp
             "${jpeg_SOURCE_DIR}/include/jpeg_cpp/bit_string.h"
             bit_string.cpp
+            "${jpeg_SOURCE_DIR}/include/jpeg_cpp/coefficient.h"
+            coefficient.cpp
             "${jpeg_SOURCE_DIR}/include/jpeg_cpp/component.h"
             component.cpp
             "${jpeg_SOURCE_DIR}/include/jpeg_cpp/encoding.h"
