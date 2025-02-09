@@ -20,6 +20,11 @@ class Test_encode_greyscale(unittest.TestCase):
         with PIL.Image.open(pirate_path) as im:
             self.pirate_img = np.array(im)
 
+        pirate_509x509_path = test_dir / 'assets/pirate_509x509.png'
+
+        with PIL.Image.open(pirate_509x509_path) as im:
+            self.pirate_509x509 = np.array(im)
+
     def test_mean_diff(self):
         """Tests the mean difference between the original and encoded images"""
 
@@ -101,6 +106,21 @@ class Test_encode_greyscale(unittest.TestCase):
         # Hard to say what a reasonable value for the expected mean difference is
         # Seems to be about 0.006 for the spec luminance table
         self.assertLess(mean_diff, 0.01)
+
+    def test_mean_diff_509x509(self):
+        """Tests the mean difference for images whose width/height are note multiples of 8"""
+
+        # Encode and then decode the pirate image
+        encoded_image = jpeg.encode_greyscale(self.pirate_509x509)
+
+        with PIL.Image.open(io.BytesIO(encoded_image)) as im:
+            decoded_image = np.array(im)
+
+        # Now check the decoded image is similar to the original
+        mean_diff = abs((decoded_image.astype(np.float64) - self.pirate_509x509.astype(np.float64)).mean())
+
+        # Hard to say what a reasonable value for the expected mean difference is
+        self.assertLess(mean_diff, 0.01)
     
     def test_reject_non_numpy_array(self):
         """Tests objects other than numpy arrays are rejected"""
@@ -158,12 +178,19 @@ class Test_encode_colour(unittest.TestCase):
 
         test_dir = pathlib.Path(__file__).parent.parent
 
-        pirate_path = test_dir / 'assets/mandrill.png'
+        mandrill_path = test_dir / 'assets/mandrill.png'
 
-        with PIL.Image.open(pirate_path) as im:
+        with PIL.Image.open(mandrill_path) as im:
             img_data = np.array(im)
 
         self.mandrill_img = tuple(img_data[:, :, i] for i in range(3))
+
+        mandrill_509x509_path = test_dir / 'assets/mandrill_509x509.png'
+
+        with PIL.Image.open(mandrill_509x509_path) as im:
+            img_data = np.array(im)
+
+        self.mandrill_509x509 = tuple(img_data[:, :, i] for i in range(3))
 
     def test_mean_diff(self):
         """Tests the mean difference between the original and encoded images"""
@@ -297,6 +324,25 @@ class Test_encode_colour(unittest.TestCase):
 
         # Now check the decoded image is similar to the original, component by component
         for c_orig, c_dec in zip(self.mandrill_img, decoded_image):
+                
+            mean_diff = abs((c_dec.astype(np.float64) - c_orig.astype(np.float64)).mean())
+
+            # Hard to say what a reasonable value for the expected mean difference is
+            self.assertLess(mean_diff, 1.0)
+
+    def test_mean_diff_509x509(self):
+        """Tests the mean difference for images whose width and height aren't mutliples of 8"""
+
+        # Encode and then decode the pirate image
+        encoded_image = jpeg.encode_colour(*self.mandrill_509x509)
+
+        with PIL.Image.open(io.BytesIO(encoded_image)) as im:
+            decoded_image = np.array(im)
+
+        decoded_image = tuple(decoded_image[:, :, i] for i in range(3))
+
+        # Now check the decoded image is similar to the original, component by component
+        for c_orig, c_dec in zip(self.mandrill_509x509, decoded_image):
                 
             mean_diff = abs((c_dec.astype(np.float64) - c_orig.astype(np.float64)).mean())
 
