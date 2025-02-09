@@ -594,6 +594,11 @@ namespace JPEG
         const std::array<unsigned int, 16>& bits, const std::vector<unsigned int>& huffval
     )
     {
+        if (huffval.size()>256)
+        {
+            throw std::invalid_argument("Received more than 256 symbols");
+        }
+
         // Roughly follows the algorithm in Figure C.2 of the JPEG spec 
         Huff_Table table(256);
 

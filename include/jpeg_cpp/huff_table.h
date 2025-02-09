@@ -84,7 +84,8 @@ namespace JPEG
         /// @return Spec AC Huffman table
         static Huff_Table load_AC_table(Image_Component type);
 
-        /// @brief Loads the Huffman table from the given BITS and HUFFVAL arrays
+        /// @brief Loads the Huffman table from the given BITS and HUFFVAL arrays. Note HUFFVAL
+        /// should not contain more than 256 symbols
         /// @param bits BITS array
         /// @param huffval HUFFVAL array
         /// @return Huffman table loaded from the given BITS and HUFFVAL arrays
