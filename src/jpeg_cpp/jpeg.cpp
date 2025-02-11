@@ -23,9 +23,10 @@ namespace JPEG
         };
 
         // Enlarge component as neccessary
-        std::vector<Array_2d<double>> enlarged_comps{
-            enlarge_component(array_2d, comp_infos[0].V, comp_infos[0].H)
-        };
+        std::vector<Array_2d<double>> enlarged_comps;
+
+        // Move the component to avoid unnecessary copying
+        enlarged_comps.push_back(std::move(enlarge_component(array_2d, comp_infos[0].V, comp_infos[0].H)));
 
         // Now call the general encode function
         const unsigned int Y{ static_cast<unsigned int>(array_2d.shape()[0]) };
@@ -106,11 +107,12 @@ namespace JPEG
             )->V
         };
 
-        std::vector<Array_2d<double>> enlarged_comps{
-            enlarge_component(red, max_V, max_H),
-            enlarge_component(green, max_V, max_H),
-            enlarge_component(blue, max_V, max_H)
-        };
+        std::vector<Array_2d<double>> enlarged_comps;
+
+        // Move the components to avoid unnecessary copying
+        enlarged_comps.push_back(std::move(enlarge_component(red, max_V, max_H)));
+        enlarged_comps.push_back(std::move(enlarge_component(green, max_V, max_H)));
+        enlarged_comps.push_back(std::move(enlarge_component(blue, max_V, max_H)));
 
         // Perform the colour transform
         colour_transform(enlarged_comps[0], enlarged_comps[1], enlarged_comps[2]);
