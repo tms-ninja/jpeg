@@ -757,7 +757,7 @@ namespace JPEG
         // Both height and width requirements met, just return a copy
         if (cur_height==required_height && cur_width==required_width)
         {
-            return Array_2d<double>{orig_comp};
+            return orig_comp;
         }
 
         // Need to enlarge
