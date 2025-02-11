@@ -37,6 +37,29 @@ void throw_python_exception(PyObject* exception, const char* message)
     throw Python_Exception(message);
 }
 
+/// @brief Constructs an Arrat_2d<double> instance from a NumPy array. Assumes the 
+/// NumPy array is C contiguous meaning the memory can simply be iterated over as a 
+/// 1d array.
+/// @param np_array A C contiguous 2d NumPy array with type NPY_UINT8
+/// @return The newly constructed Arrat_2d<double> 
+JPEG::Array_2d<double> convert_numpy_c_contiguous_to_array_2d(PyArrayObject* np_array)
+{
+    std::array<size_t, 2> shape{
+        static_cast<size_t>(PyArray_DIMS(np_array)[0]),
+        static_cast<size_t>(PyArray_DIMS(np_array)[1]),
+    };
+
+    JPEG::Array_2d<double> array_2d{ shape[0], shape[1] };
+    const unsigned char* np_ptr{ static_cast<unsigned char*>(PyArray_DATA(np_array)) };
+
+    for (size_t ind = 0; ind < array_2d.size(); ind++)
+    {
+        array_2d[ind] = static_cast<double>(np_ptr[ind]);
+    }
+
+    return array_2d;
+}
+
 /// @brief Constructs an Arrat_2d<double> instance from a NumPy array. Works by iterating 
 /// using NumPy iteraotrs so should work regardless of any array slicing, array order 
 /// (C/Fortran) etc. convert_numpy_to_array_2d() should be prefered.
@@ -140,10 +163,14 @@ JPEG::Array_2d<double> convert_numpy_to_array_2d(PyObject* obj)
         throw_python_exception(PyExc_ValueError, "Array cannot have size zero in any dimension");
     }
 
+    // If the array is C contiguous we can avoid the performance hit of using
+    // NumPy iterators. Note this question regarding strides of C contigous arrays: https://github.com/numpy/numpy/issues/15979
+    if (PyArray_IS_C_CONTIGUOUS(np_array))
+    {
+        return convert_numpy_c_contiguous_to_array_2d(np_array);
+    }
+    
     // This works for a generic numpy array, regardless of how it exists in memory
-    // In future we might be able to get a performance improvement for arrays that
-    // are C contiguous. We can use PyArray_IS_C_CONTIGUOUS() to check this. Note 
-    // this question regarding strides: https://github.com/numpy/numpy/issues/15979
     return convert_numpy_generic_to_array_2d(np_array);
 }
 
