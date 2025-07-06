@@ -135,8 +135,22 @@ namespace JPEG {
             buffer.push_back(0u);
         }
 
+        // As we're appending we know we're appending the bit to the last element in
+        // the buffer
+        size_t offset{ buffer_size % CHAR_BIT };
+        size_t bit_selector{ MSB_selector >> offset };
+
         // Set the bit and update the size of the buffer
-        (*this)[buffer_size] = bit;
+        if (bit)
+        {
+            buffer.back() |= bit_selector;
+        }
+        else
+        {
+            buffer.back() &= ~bit_selector;
+        }
+
+        // Don't forget to update the size of the buffer
         buffer_size++;
     }
 

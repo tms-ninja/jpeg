@@ -108,30 +108,32 @@ namespace JPEG
         {
             for (size_t j = 0; j < q_table_corrected.shape()[1]; j++)
             {
-                q_table_corrected(i, j) = q_table(i, j);
+                q_table_corrected(i, j) = 1.0/q_table(i, j);
 
                 if (i==0)
                 {
-                    q_table_corrected(i, j) *= std::sqrt(2.0);
+                    q_table_corrected(i, j) /= std::sqrt(2.0);
                 }
                 
                 if (j==0)
                 {
-                    q_table_corrected(i, j) *= std::sqrt(2.0);
+                    q_table_corrected(i, j) /= std::sqrt(2.0);
                 }
             }
         }
 
+        size_t data_unit_offset{ 0 };
+
         // Now we can apply quantization
         for (size_t du_ind = 0; du_ind < array.shape()[0]; du_ind++)
         {
-            for (size_t i = 0; i < array.shape()[1]; i++)
+
+            for (size_t ind = 0; ind < du_size; ind++)
             {
-                for (size_t j = 0; j < array.shape()[2]; j++)
-                {
-                    array(du_ind, i, j) = std::round(array(du_ind, i, j) / q_table_corrected(i, j));
-                }
+                array[data_unit_offset+ind] = std::round(array[data_unit_offset+ind] * q_table_corrected[ind]);
             }
+
+            data_unit_offset += du_size;
         }
     }
 
@@ -755,7 +757,7 @@ namespace JPEG
         // Both height and width requirements met, just return a copy
         if (cur_height==required_height && cur_width==required_width)
         {
-            return Array_2d<double>{orig_comp};
+            return orig_comp;
         }
 
         // Need to enlarge
